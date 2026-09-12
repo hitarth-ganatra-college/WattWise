@@ -119,7 +119,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 
         // Ground Floor
         const grassGeo = new THREE.PlaneGeometry(60, 60);
-        const grassMat = new THREE.MeshStandardMaterial({{ color: 0x4d7c0f, roughness: 0.9 }});
+        const grassMat = new THREE.MeshStandardMaterial({{ color: 0x3d5c2e, roughness: 0.95 }});
         const grass = new THREE.Mesh(grassGeo, grassMat);
         grass.rotation.x = -Math.PI / 2;
         grass.receiveShadow = true;
@@ -127,7 +127,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 
         // Dirt Patch
         const dirtGeo = new THREE.CylinderGeometry(4.5, 5.5, 0.15, 32);
-        const dirtMat = new THREE.MeshStandardMaterial({{ color: 0x78350f, roughness: 0.95 }});
+        const dirtMat = new THREE.MeshStandardMaterial({{ color: 0x5a534c, roughness: 0.9 }});
         const dirt = new THREE.Mesh(dirtGeo, dirtMat);
         dirt.position.y = 0.07;
         dirt.receiveShadow = true;
@@ -279,7 +279,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0, panel_temp: float = 45.0, health_status: str = "Healthy", height: int = 460):
     """Render a realistic 3D Photovoltaic Solar Array with scattered perimeter callout cards and dynamic SVG leader lines to origin points."""
     
-    dust_opacity = max(0.0, min(0.65, (1.0 - soiling_factor) * 2.2))
+    dust_opacity = max(0.0, min(0.32, (1.0 - soiling_factor) * 0.7))
     badge_color = "#ef4444" if health_status == "Critical" else ("#f59e0b" if health_status == "Warning" else "#10b981")
     ts = time.time()
 
@@ -348,8 +348,8 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
 
     <script>
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xdbeafe);
-        scene.fog = new THREE.FogExp2(0xdbeafe, 0.012);
+        scene.background = new THREE.Color(0xdce9f5);
+        scene.fog = new THREE.FogExp2(0xdce9f5, 0.012);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 6, 15);
@@ -365,74 +365,92 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         controls.maxPolarAngle = Math.PI / 2 - 0.02;
 
         // Lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.3);
+        const sunLight = new THREE.DirectionalLight(0xfffbeb, 1.35);
         sunLight.position.set(14, 22, 10);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 1024;
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        // Ground Floor
+        // Ground Floor - Natural Meadow
         const grassGeo = new THREE.PlaneGeometry(50, 50);
-        const grassMat = new THREE.MeshStandardMaterial({{ color: 0x4d7c0f, roughness: 0.95 }});
+        const grassMat = new THREE.MeshStandardMaterial({{ color: 0x3d5c2e, roughness: 0.95 }});
         const grass = new THREE.Mesh(grassGeo, grassMat);
         grass.rotation.x = -Math.PI / 2;
         grass.receiveShadow = true;
         scene.add(grass);
 
-        // Dirt Bed
+        // Gravel / Concrete Foundation Pad
         const dirtBedGeo = new THREE.BoxGeometry(14, 0.05, 8);
-        const dirtBedMat = new THREE.MeshStandardMaterial({{ color: 0x78350f, roughness: 0.9 }});
+        const dirtBedMat = new THREE.MeshStandardMaterial({{ color: 0x5a534c, roughness: 0.85 }});
         const dirtBed = new THREE.Mesh(dirtBedGeo, dirtBedMat);
         dirtBed.position.set(0, 0.025, 0);
         dirtBed.receiveShadow = true;
         scene.add(dirtBed);
 
-        // Dynamic Canvas Texture Generator
+        // Photorealistic Blue Silicon Solar Texture Generator
         function createSolarTexture() {{
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
 
-            ctx.fillStyle = '#0a192f';
+            // Rich Silicon Blue Base
+            ctx.fillStyle = '#0a1d3d';
             ctx.fillRect(0, 0, 512, 512);
 
-            ctx.strokeStyle = '#1e3a8a';
-            ctx.lineWidth = 3;
-            const cellW = 512 / 6;
-            const cellH = 512 / 10;
-            for (let x = 0; x <= 6; x++) {{
+            const cols = 6;
+            const rows = 10;
+            const cellW = 512 / cols;
+            const cellH = 512 / rows;
+
+            // Draw individual silicon cell wafers with specular blue fill
+            for (let c = 0; c < cols; c++) {{
+                for (let r = 0; r < rows; r++) {{
+                    ctx.fillStyle = '#0f2952';
+                    ctx.fillRect(c * cellW + 1.5, r * cellH + 1.5, cellW - 3, cellH - 3);
+                }}
+            }}
+
+            // Cell boundaries (subtle blue lines)
+            ctx.strokeStyle = '#1e40af';
+            ctx.lineWidth = 1.5;
+            for (let x = 0; x <= cols; x++) {{
                 ctx.beginPath();
                 ctx.moveTo(x * cellW, 0);
                 ctx.lineTo(x * cellW, 512);
                 ctx.stroke();
             }}
-            for (let y = 0; y <= 10; y++) {{
+            for (let y = 0; y <= rows; y++) {{
                 ctx.beginPath();
                 ctx.moveTo(0, y * cellH);
                 ctx.lineTo(512, y * cellH);
                 ctx.stroke();
             }}
 
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 5;
-            for (let b of [128, 256, 384]) {{
-                ctx.beginPath();
-                ctx.moveTo(0, b);
-                ctx.lineTo(512, b);
-                ctx.stroke();
+            // Bright Silver Busbars (3 main vertical conductors per cell column)
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 2.5;
+            for (let c = 0; c < cols; c++) {{
+                for (let offRatio of [0.25, 0.5, 0.75]) {{
+                    const bx = c * cellW + cellW * offRatio;
+                    ctx.beginPath();
+                    ctx.moveTo(bx, 0);
+                    ctx.lineTo(bx, 512);
+                    ctx.stroke();
+                }}
             }}
 
-            ctx.strokeStyle = '#3b82f6';
+            // Micro finger conductors (thin horizontal silver grid)
+            ctx.strokeStyle = 'rgba(241, 245, 249, 0.22)';
             ctx.lineWidth = 1;
-            for (let f = 0; f < 512; f += 12) {{
+            for (let y = 3; y < 512; y += 6) {{
                 ctx.beginPath();
-                ctx.moveTo(f, 0);
-                ctx.lineTo(f, 512);
+                ctx.moveTo(0, y);
+                ctx.lineTo(512, y);
                 ctx.stroke();
             }}
 
@@ -477,8 +495,13 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         const rows = 2;
         const cols = 4;
 
-        const pvCellMat = new THREE.MeshStandardMaterial({{ map: solarTexture, roughness: 0.15, metalness: 0.75 }});
-        const frameMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, metalness: 0.95, roughness: 0.15 }});
+        const pvCellMat = new THREE.MeshStandardMaterial({{ 
+            map: solarTexture, 
+            roughness: 0.1, 
+            metalness: 0.3,
+            color: 0xffffff 
+        }});
+        const frameMat = new THREE.MeshStandardMaterial({{ color: 0xd1d5db, metalness: 0.95, roughness: 0.15 }});
 
         for (let r = 0; r < rows; r++) {{
             for (let c = 0; c < cols; c++) {{
@@ -496,9 +519,9 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 pvSurface.position.y = 0.01;
                 singlePanelGroup.add(pvSurface);
 
-                if ({dust_opacity} > 0.05) {{
+                if ({dust_opacity} > 0.02) {{
                     const dustMat = new THREE.MeshStandardMaterial({{
-                        color: 0xd97706, transparent: true, opacity: {dust_opacity}, roughness: 0.95
+                        color: 0x9f9788, transparent: true, opacity: {dust_opacity}, roughness: 0.95
                     }});
                     const dustLayer = new THREE.Mesh(new THREE.PlaneGeometry(panelWidth - 0.08, panelHeight - 0.08), dustMat);
                     dustLayer.rotation.x = -Math.PI / 2;
