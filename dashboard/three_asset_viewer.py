@@ -10,7 +10,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health_status: str = "Healthy", height: int = 440):
-    """Render a realistic 3D Wind Turbine model with natural environment and 3D screen-projected component labels."""
+    """Render a realistic 3D Wind Turbine model with scattered callout cards and dynamic SVG leader lines to origin points."""
     
     speed_factor = max(0.01, min(0.35, (rpm / 1800.0) * 0.18)) if rpm > 0 else 0.002
     gearbox_color = "0xef4444" if gearbox_temp > 80 else ("0xf59e0b" if gearbox_temp > 65 else "0xe2e8f0")
@@ -29,18 +29,13 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
             box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 10; min-width: 220px;
         }}
         .annotation {{
-            position: absolute; pointer-events: none; transform: translate(-50%, -100%);
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(6px);
-            border: 1px solid rgba(56, 189, 248, 0.5); color: #ffffff;
-            padding: 4px 8px; border-radius: 6px; font-size: 10px; line-height: 1.3;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
+            position: absolute; pointer-events: none;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);
+            border: 1.5px solid rgba(56, 189, 248, 0.6); color: #ffffff;
+            padding: 6px 12px; border-radius: 8px; font-size: 11px; line-height: 1.4;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
         }}
-        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 10.5px; margin-bottom: 2px; }}
-        .annotation-dot {{
-            position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
-            width: 6px; height: 6px; background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 6px #38bdf8;
-        }}
+        .annotation-title {{ font-weight: 800; color: #38bdf8; font-size: 11.5px; margin-bottom: 2px; letter-spacing: 0.3px; }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -54,29 +49,40 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         <span style="color:#64748b; font-size:11px;">Drag to rotate | Scroll to zoom</span>
     </div>
 
-    <!-- Dynamic 3D Component Callout Overlay Badges -->
-    <div id="anno-nacelle" class="annotation">
+    <!-- SVG Canvas Overlay for Leader Lines -->
+    <svg id="svg-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;">
+        <line id="line-nacelle" stroke="{badge_color}" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-nacelle" r="5" fill="{badge_color}" />
+
+        <line id="line-rotor" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-rotor" r="5" fill="#38bdf8" />
+
+        <line id="line-tower" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-tower" r="5" fill="#38bdf8" />
+
+        <line id="line-base" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-base" r="5" fill="#38bdf8" />
+    </svg>
+
+    <!-- Scattered Dynamic Component Callout Overlay Badges -->
+    <div id="anno-nacelle" class="annotation" style="top: 14px; right: 14px;">
         <div class="annotation-title">GEARBOX & GENERATOR HOUSING</div>
         <div>Temp: <b style="color:{badge_color};">{gearbox_temp:.1f} °C</b></div>
-        <div class="annotation-dot" style="background:{badge_color}; box-shadow: 0 0 8px {badge_color};"></div>
     </div>
 
-    <div id="anno-rotor" class="annotation">
+    <div id="anno-rotor" class="annotation" style="top: 85px; right: 14px;">
         <div class="annotation-title">AERODYNAMIC ROTOR & BLADES</div>
         <div>Rotor Speed: <b>{rpm:.1f} RPM</b></div>
-        <div class="annotation-dot"></div>
     </div>
 
-    <div id="anno-tower" class="annotation">
+    <div id="anno-tower" class="annotation" style="top: 155px; right: 14px;">
         <div class="annotation-title">STEEL SUPPORT TOWER</div>
         <div>13m Tapered Tubular Steel</div>
-        <div class="annotation-dot"></div>
     </div>
 
-    <div id="anno-base" class="annotation">
+    <div id="anno-base" class="annotation" style="bottom: 14px; right: 14px;">
         <div class="annotation-title">FOUNDATION BASE</div>
         <div>Concrete Anchor Pad</div>
-        <div class="annotation-dot"></div>
     </div>
 
     <script>
@@ -181,27 +187,66 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
             rotorGroup.add(bladeGroup);
         }}
 
-        // 3D Callout Annotations Mapping
+        // Scattered Annotations & Leader Line Connectors
         const annotations = [
-            {{ element: document.getElementById('anno-nacelle'), position: new THREE.Vector3(0, 14.5, 0.4) }},
-            {{ element: document.getElementById('anno-rotor'), position: new THREE.Vector3(0, 13.5, -2.0) }},
-            {{ element: document.getElementById('anno-tower'), position: new THREE.Vector3(1.2, 7.0, 0) }},
-            {{ element: document.getElementById('anno-base'), position: new THREE.Vector3(-2.0, 0.4, 0) }}
+            {{
+                card: document.getElementById('anno-nacelle'),
+                line: document.getElementById('line-nacelle'),
+                dot: document.getElementById('dot-nacelle'),
+                position: new THREE.Vector3(0, 13.8, 0.4)
+            }},
+            {{
+                card: document.getElementById('anno-rotor'),
+                line: document.getElementById('line-rotor'),
+                dot: document.getElementById('dot-rotor'),
+                position: new THREE.Vector3(0, 13.5, -1.45)
+            }},
+            {{
+                card: document.getElementById('anno-tower'),
+                line: document.getElementById('line-tower'),
+                dot: document.getElementById('dot-tower'),
+                position: new THREE.Vector3(0, 7.0, 0)
+            }},
+            {{
+                card: document.getElementById('anno-base'),
+                line: document.getElementById('line-base'),
+                dot: document.getElementById('dot-base'),
+                position: new THREE.Vector3(0, 0.4, 0)
+            }}
         ];
 
         function updateAnnotations() {{
             const tempV = new THREE.Vector3();
             annotations.forEach(anno => {{
-                if (!anno.element) return;
+                if (!anno.card || !anno.line || !anno.dot) return;
                 tempV.copy(anno.position);
                 tempV.project(camera);
 
-                const x = (tempV.x * .5 + .5) * window.innerWidth;
-                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+                if (tempV.z >= 1) {{
+                    anno.card.style.display = 'none';
+                    anno.line.style.display = 'none';
+                    anno.dot.style.display = 'none';
+                    return;
+                }}
 
-                anno.element.style.left = `${{x}}px`;
-                anno.element.style.top = `${{y}}px`;
-                anno.element.style.display = (tempV.z < 1) ? 'block' : 'none';
+                anno.card.style.display = 'block';
+                anno.line.style.display = 'block';
+                anno.dot.style.display = 'block';
+
+                const originX = (tempV.x * .5 + .5) * window.innerWidth;
+                const originY = (tempV.y * -.5 + .5) * window.innerHeight;
+
+                const rect = anno.card.getBoundingClientRect();
+                const cardX = rect.left;
+                const cardY = rect.top + rect.height / 2;
+
+                anno.line.setAttribute('x1', cardX);
+                anno.line.setAttribute('y1', cardY);
+                anno.line.setAttribute('x2', originX);
+                anno.line.setAttribute('y2', originY);
+
+                anno.dot.setAttribute('cx', originX);
+                anno.dot.setAttribute('cy', originY);
             }});
         }}
 
@@ -273,23 +318,32 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         <span style="color:#64748b; font-size:11px;">Drag to rotate | Scroll to zoom</span>
     </div>
 
-    <!-- Dynamic 3D Component Callout Overlay Badges -->
-    <div id="anno-modules" class="annotation">
+    <!-- SVG Canvas Overlay for Leader Lines -->
+    <svg id="svg-overlay-solar" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;">
+        <line id="line-modules" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-modules" r="5" fill="#38bdf8" />
+
+        <line id="line-soiling" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-soiling" r="5" fill="#f59e0b" />
+
+        <line id="line-mount" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+        <circle id="dot-mount" r="5" fill="#38bdf8" />
+    </svg>
+
+    <!-- Scattered Dynamic Component Callout Overlay Badges -->
+    <div id="anno-modules" class="annotation" style="top: 14px; right: 14px;">
         <div class="annotation-title">SILICON PV MODULES ARRAY</div>
         <div>Irradiance: <b>{irradiance:.1f} W/m²</b></div>
-        <div class="annotation-dot"></div>
     </div>
 
-    <div id="anno-soiling" class="annotation">
+    <div id="anno-soiling" class="annotation" style="top: 85px; right: 14px;">
         <div class="annotation-title">SURFACE DUST SOILING LAYER</div>
         <div>Soiling Ratio: <b>{soiling_factor:.2f}</b></div>
-        <div class="annotation-dot" style="background:#f59e0b; box-shadow:0 0 8px #f59e0b;"></div>
     </div>
 
-    <div id="anno-mount" class="annotation">
+    <div id="anno-mount" class="annotation" style="top: 155px; right: 14px;">
         <div class="annotation-title">GALVANIZED STEEL MOUNT</div>
         <div>25° Optimal Tilt Rack</div>
-        <div class="annotation-dot"></div>
     </div>
 
     <script>
@@ -456,26 +510,60 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             }}
         }}
 
-        // 3D Callout Annotations Mapping
+        // Scattered Annotations Mapping for Solar Array
         const annotations = [
-            {{ element: document.getElementById('anno-modules'), position: new THREE.Vector3(0, 2.5, 0) }},
-            {{ element: document.getElementById('anno-soiling'), position: new THREE.Vector3(-3.2, 2.2, 1.0) }},
-            {{ element: document.getElementById('anno-mount'), position: new THREE.Vector3(4.2, 1.0, -1.0) }}
+            {{
+                card: document.getElementById('anno-modules'),
+                line: document.getElementById('line-modules'),
+                dot: document.getElementById('dot-modules'),
+                position: new THREE.Vector3(0, 2.4, 0)
+            }},
+            {{
+                card: document.getElementById('anno-soiling'),
+                line: document.getElementById('line-soiling'),
+                dot: document.getElementById('dot-soiling'),
+                position: new THREE.Vector3(-2.8, 1.8, 0.4)
+            }},
+            {{
+                card: document.getElementById('anno-mount'),
+                line: document.getElementById('line-mount'),
+                dot: document.getElementById('dot-mount'),
+                position: new THREE.Vector3(4.5, 0.8, -1.0)
+            }}
         ];
 
         function updateAnnotations() {{
             const tempV = new THREE.Vector3();
             annotations.forEach(anno => {{
-                if (!anno.element) return;
+                if (!anno.card || !anno.line || !anno.dot) return;
                 tempV.copy(anno.position);
                 tempV.project(camera);
 
-                const x = (tempV.x * .5 + .5) * window.innerWidth;
-                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+                if (tempV.z >= 1) {{
+                    anno.card.style.display = 'none';
+                    anno.line.style.display = 'none';
+                    anno.dot.style.display = 'none';
+                    return;
+                }}
 
-                anno.element.style.left = `${{x}}px`;
-                anno.element.style.top = `${{y}}px`;
-                anno.element.style.display = (tempV.z < 1) ? 'block' : 'none';
+                anno.card.style.display = 'block';
+                anno.line.style.display = 'block';
+                anno.dot.style.display = 'block';
+
+                const originX = (tempV.x * .5 + .5) * window.innerWidth;
+                const originY = (tempV.y * -.5 + .5) * window.innerHeight;
+
+                const rect = anno.card.getBoundingClientRect();
+                const cardX = rect.left;
+                const cardY = rect.top + rect.height / 2;
+
+                anno.line.setAttribute('x1', cardX);
+                anno.line.setAttribute('y1', cardY);
+                anno.line.setAttribute('x2', originX);
+                anno.line.setAttribute('y2', originY);
+
+                anno.dot.setAttribute('cx', originX);
+                anno.dot.setAttribute('cy', originY);
             }});
         }}
 
