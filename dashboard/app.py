@@ -25,6 +25,7 @@ import config
 from business_logic.health_index import AssetHealthCalculator
 from business_logic.financial_engine import FinancialEngine
 from dashboard.glass_theme import inject_glass_theme, render_glass_card, apply_plotly_glass_layout
+from dashboard.three_asset_viewer import render_3d_wind_turbine, render_3d_solar_panel
 
 # ─── Page Config ──────────────────────────────────────────────
 st.set_page_config(
@@ -349,72 +350,146 @@ with tab1:
         with c4:
             render_glass_card("Est. Daily Rev Loss", f"${total_loss:,.2f}", "Cost of Inaction", "", "#ef4444" if total_loss > 100 else "#0284c7")
 
-        st.markdown("<h4 style='color:#0f172a; margin-top:20px;'>Interactive 3D Global Fleet Map</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color:#0f172a; margin-top:20px;'>Google Earth Fleet Satellite Map & Interactive 3D Inspection</h4>", unsafe_allow_html=True)
         
         map_col1, map_col2 = st.columns([3, 1])
         with map_col2:
             st.markdown("<div style='background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;'>", unsafe_allow_html=True)
             st.markdown("<b style='color:#0f172a;'>Map Controls</b>", unsafe_allow_html=True)
             focus_asset = st.selectbox(
-                "Focus Map on Asset",
+                "Focus Map & 3D Inspector",
                 ["All Assets"] + df_assets['asset_id'].tolist(),
                 key="map_focus_asset"
             )
             proj_choice = st.radio(
                 "Map Mode",
-                ["3D Globe", "Flat Map"],
+                ["Google Earth Satellite View", "3D Globe", "Flat Vector Map"],
                 index=0,
                 key="map_proj_choice"
             )
-            st.markdown("<p style='font-size:0.75rem; color:#64748b; margin-top:6px;'>Legend: Circle = Solar Panel | Triangle = Wind Turbine</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size:0.75rem; color:#64748b; margin-top:6px;'>Legend: Red = Critical | Yellow = Warning | Green = Healthy</p>", unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         with map_col1:
-            proj = "orthographic" if proj_choice == "3D Globe" else "natural earth"
-            
-            fig_map = px.scatter_geo(
-                df_assets,
-                lat='lat',
-                lon='lon',
-                hover_name='asset_id',
-                hover_data={
-                    'asset_type': True,
-                    'region': True,
-                    'oem': True,
-                    'ahi': ':.1f',
-                    'health_status': True,
-                    'lat': ':.4f',
-                    'lon': ':.4f'
-                },
-                color='health_status',
-                symbol='asset_type',
-                symbol_map={'wind_turbine': 'triangle-up', 'solar_panel': 'circle'},
-                color_discrete_map={'Healthy': '#10b981', 'Warning': '#f59e0b', 'Critical': '#ef4444', 'Failure Imminent': '#991b1b'},
-                size_max=18,
-                projection=proj,
-                title="Global Renewable Fleet Status Map"
-            )
-            
-            geo_config = dict(
-                projection_type=proj,
-                showcountries=True,
-                showcoastlines=True,
-                showland=True,
-                landcolor="#e2e8f0",
-                oceancolor="#f0f9ff",
-                lakecolor="#f0f9ff",
-                bgcolor="rgba(0,0,0,0)"
-            )
-            
-            if focus_asset != "All Assets":
-                asset_row = df_assets[df_assets['asset_id'] == focus_asset].iloc[0]
-                geo_config['center'] = dict(lat=float(asset_row['lat']), lon=float(asset_row['lon']))
-                geo_config['projection_scale'] = 3.5 if proj == "orthographic" else 4.0
-            
-            fig_map.update_geos(**geo_config)
-            fig_map.update_traces(marker=dict(size=14, line=dict(width=1.5, color='white')))
-            apply_plotly_glass_layout(fig_map)
-            st.plotly_chart(fig_map, use_container_width=True)
+            if proj_choice == "Google Earth Satellite View":
+                center_dict = dict(lat=20.0, lon=0.0)
+                zoom_val = 1.2
+
+                if focus_asset != "All Assets":
+                    asset_row = df_assets[df_assets['asset_id'] == focus_asset].iloc[0]
+                    center_dict = dict(lat=float(asset_row['lat']), lon=float(asset_row['lon']))
+                    zoom_val = 13.5  # Satellite close-up focus!
+
+                scatter_map_func = getattr(px, 'scatter_map', None) or getattr(px, 'scatter_mapbox', None)
+                fig_map = scatter_map_func(
+                    df_assets,
+                    lat='lat',
+                    lon='lon',
+                    hover_name='asset_id',
+                    hover_data={
+                        'asset_type': True,
+                        'region': True,
+                        'oem': True,
+                        'ahi': ':.1f',
+                        'health_status': True,
+                        'lat': ':.4f',
+                        'lon': ':.4f'
+                    },
+                    color='health_status',
+                    color_discrete_map={'Healthy': '#10b981', 'Warning': '#f59e0b', 'Critical': '#ef4444', 'Failure Imminent': '#991b1b'},
+                    size_max=18,
+                    zoom=zoom_val,
+                    center=center_dict,
+                    title="Google Earth Photorealistic Satellite View"
+                )
+
+                style_key = "map_style" if hasattr(px, 'scatter_map') else "mapbox_style"
+                layers_key = "map_layers" if hasattr(px, 'scatter_map') else "mapbox_layers"
+                
+                layout_kwargs = {
+                    style_key: "white-bg",
+                    layers_key: [
+                        {
+                            "below": 'traces',
+                            "sourcetype": "raster",
+                            "source": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"]
+                        }
+                    ],
+                    "margin": dict(l=0, r=0, t=30, b=0)
+                }
+                fig_map.update_layout(**layout_kwargs)
+                fig_map.update_traces(marker=dict(size=14, opacity=0.9))
+                st.plotly_chart(fig_map, use_container_width=True)
+
+            else:
+                proj = "orthographic" if proj_choice == "3D Globe" else "natural earth"
+                fig_map = px.scatter_geo(
+                    df_assets,
+                    lat='lat',
+                    lon='lon',
+                    hover_name='asset_id',
+                    hover_data={
+                        'asset_type': True,
+                        'region': True,
+                        'oem': True,
+                        'ahi': ':.1f',
+                        'health_status': True,
+                        'lat': ':.4f',
+                        'lon': ':.4f'
+                    },
+                    color='health_status',
+                    symbol='asset_type',
+                    symbol_map={'wind_turbine': 'triangle-up', 'solar_panel': 'circle'},
+                    color_discrete_map={'Healthy': '#10b981', 'Warning': '#f59e0b', 'Critical': '#ef4444', 'Failure Imminent': '#991b1b'},
+                    size_max=18,
+                    projection=proj,
+                    title="Fleet Global Status Map"
+                )
+                
+                geo_config = dict(
+                    projection_type=proj,
+                    showcountries=True,
+                    showcoastlines=True,
+                    showland=True,
+                    landcolor="#e2e8f0",
+                    oceancolor="#f0f9ff",
+                    lakecolor="#f0f9ff",
+                    bgcolor="rgba(0,0,0,0)"
+                )
+                
+                if focus_asset != "All Assets":
+                    asset_row = df_assets[df_assets['asset_id'] == focus_asset].iloc[0]
+                    geo_config['center'] = dict(lat=float(asset_row['lat']), lon=float(asset_row['lon']))
+                    geo_config['projection_scale'] = 3.5 if proj == "orthographic" else 4.0
+                
+                fig_map.update_geos(**geo_config)
+                fig_map.update_traces(marker=dict(size=14, line=dict(width=1.5, color='white')))
+                apply_plotly_glass_layout(fig_map)
+                st.plotly_chart(fig_map, use_container_width=True)
+
+        # Render 3D WebGL Asset Model Inspector when an asset is focused
+        if focus_asset != "All Assets":
+            st.divider()
+            asset_row = df_assets[df_assets['asset_id'] == focus_asset].iloc[0]
+            atype = asset_row.get('asset_type', 'unknown')
+            ahi_val = asset_row.get('ahi', 100.0)
+            status_val = asset_row.get('health_status', 'Healthy')
+
+            st.markdown(f"<h4 style='color:#0f172a;'>Interactive 3D Asset Model Inspector: {focus_asset}</h4>", unsafe_allow_html=True)
+            st.caption("Rotatable 3D WebGL asset visualization driven by real-time SCADA telemetry.")
+
+            latest_tel_list = fetch_history(focus_asset, limit=1)
+            latest_doc = latest_tel_list[0] if latest_tel_list else {}
+
+            if atype == 'wind_turbine':
+                rpm_val = latest_doc.get('generator_rpm') or 1500.0
+                gb_temp = latest_doc.get('gearbox_bearing_temp') or 60.0
+                render_3d_wind_turbine(rpm=rpm_val, gearbox_temp=gb_temp, health_status=status_val, height=400)
+            else:
+                soiling_val = latest_doc.get('soiling_factor') or 1.0
+                irradiance_val = latest_doc.get('solar_irradiance') or 850.0
+                panel_temp_val = latest_doc.get('panel_temp') or 45.0
+                render_3d_solar_panel(soiling_factor=soiling_val, irradiance=irradiance_val, panel_temp=panel_temp_val, health_status=status_val, height=400)
 
         st.markdown("<h4 style='color:#0f172a; margin-top:20px;'>Fleet Status Overview</h4>", unsafe_allow_html=True)
         
