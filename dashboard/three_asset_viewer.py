@@ -296,28 +296,30 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
 
         const solarTexture = createSolarTexture();
 
-        // Galvanized Steel Support Legs & Racking Frame
-        const legMat = new THREE.MeshStandardMaterial({{ color: 0x64748b, metalness: 0.85, roughness: 0.3 }});
-        
-        for (let x of [-4.5, 0, 4.5]) {{
-            // Front leg
-            const legFront = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 16), legMat);
-            legFront.position.set(x, 0.7, 1.2);
-            legFront.castShadow = true;
-            scene.add(legFront);
-
-            // Rear leg
-            const legRear = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.8, 16), legMat);
-            legRear.position.set(x, 1.4, -1.2);
-            legRear.castShadow = true;
-            scene.add(legRear);
-        }}
-
         // Main Solar Array Rack Group (Tilted at 25 degrees)
         const arrayGroup = new THREE.Group();
         arrayGroup.position.set(0, 2.0, 0);
         arrayGroup.rotation.x = Math.PI / 7; // 25° Optimal Solar Tilt
         scene.add(arrayGroup);
+
+        // Galvanized Steel Support Legs (Attached to Array Group)
+        const legMat = new THREE.MeshStandardMaterial({{ color: 0x64748b, metalness: 0.85, roughness: 0.3 }});
+        
+        for (let x of [-4.5, 0, 4.5]) {{
+            // Front leg
+            const legFront = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 16), legMat);
+            legFront.position.set(x, -0.7, 1.2);
+            legFront.rotation.x = -Math.PI / 7; // Counter-tilt so legs go straight down into ground
+            legFront.castShadow = true;
+            arrayGroup.add(legFront);
+
+            // Rear leg
+            const legRear = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.8, 16), legMat);
+            legRear.position.set(x, -1.4, -1.2);
+            legRear.rotation.x = -Math.PI / 7;
+            legRear.castShadow = true;
+            arrayGroup.add(legRear);
+        }}
 
         // Aluminum Rack Support Rails
         const railMat = new THREE.MeshStandardMaterial({{ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 }});
@@ -379,10 +381,9 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             }}
         }}
 
-        // Animation Loop - Slow Showcase Orbit
+        // Static Real-world Orientation - User Controls Orbit Rotation
         function animate() {{
             requestAnimationFrame(animate);
-            arrayGroup.rotation.y += 0.0015;
             controls.update();
             renderer.render(scene, camera);
         }}

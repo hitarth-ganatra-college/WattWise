@@ -1,8 +1,7 @@
 """
-Clean Light Dashboard for PdM Platform
-======================================
-Consumes telemetry, ML anomaly scores, and business financial engine 
-to deliver a clean executive & technician dashboard.
+Clean Light Executive Dashboard for WattWise PdM Platform (v2.0 UI Overhaul)
+========================================================================
+Consumes SCADA telemetry, ML anomaly scores, and financial risk engine.
 """
 
 import streamlit as st
@@ -205,21 +204,7 @@ if "toolbar_region" not in st.session_state:
 asset_type_filter = st.session_state.get("toolbar_asset_type", "All")
 region_filter = st.session_state.get("toolbar_region", "All")
 
-# ─── Top Executive Brand Header Bar ───────────────────────────
-head_col1, head_col2 = st.columns([3, 1])
-with head_col1:
-    st.markdown(render_wattwise_logo(height=44, width=250), unsafe_allow_html=True)
-with head_col2:
-    st.markdown(
-        '<div style="display:flex; justify-content:flex-end; align-items:center; height:100%;">'
-        '<div class="wattwise-status-pill"><span class="status-dot-green"></span><span><b>System Online</b> | SCADA Stream 2s</span></div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
-
-# ─── Primary Navigation Menu Bar (Full Width Top Ribbon) ────────
+# ─── 1. Primary Navigation Menu Bar (At the Very Top) ──────────
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Fleet Overview",
     "Asset Deep Dive",
@@ -229,7 +214,18 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Command Center"
 ])
 
-# ─── Linear Horizontal Filter Toolbar ──────────────────────────
+# ─── 2. Top Executive Brand Header Bar (Tailwind UI Navbar Card) ──
+st.markdown(
+    '<div class="tw-navbar">'
+    f'<div>{render_wattwise_logo(height=42, width=240)}</div>'
+    '<div class="wattwise-status-pill"><span class="status-dot-green"></span><span><b>System Online</b> | SCADA Stream 2s</span></div>'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown("<hr class='tw-divider'/>", unsafe_allow_html=True)
+
+# ─── 3. Linear Horizontal Filter Toolbar ──────────────────────────
 tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2.5, 2.5, 2.5, 2.5])
 
 with tf_col1:
@@ -245,12 +241,15 @@ with tf_col3:
 
 with tf_col4:
     st.markdown(
-        '<div style="font-size:0.8rem; color:#475569; padding-top:4px;">'
+        '<div style="font-size:0.82rem; color:#475569; padding-top:4px;">'
         '<div><b>Telemetry Status:</b> Live SCADA Stream</div>'
         '<div style="color:#0284c7; font-weight:600;">DB: mongodb://localhost:27017</div>'
         '</div>',
         unsafe_allow_html=True
     )
+
+# ─── Explicit Line Gap & Section Divider Between Filters & Data ──
+st.markdown("<hr class='tw-divider' style='margin: 28px 0 32px 0; border-top: 2px solid #cbd5e1;'/>", unsafe_allow_html=True)
 
 # ─── Helpers ──────────────────────────────────────────────────
 hc = AssetHealthCalculator()
