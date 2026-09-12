@@ -24,19 +24,35 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 from business_logic.health_index import AssetHealthCalculator
 from business_logic.financial_engine import FinancialEngine
-from dashboard.glass_theme import inject_glass_theme, render_glass_card, apply_plotly_glass_layout
+from dashboard.glass_theme import inject_glass_theme, render_glass_card, apply_plotly_glass_layout, render_wattwise_logo
 from dashboard.three_asset_viewer import render_3d_wind_turbine, render_3d_solar_panel
 
 # ─── Page Config ──────────────────────────────────────────────
 st.set_page_config(
     layout="wide",
-    page_title="Predictive Maintenance Platform",
-    page_icon="P",
-    initial_sidebar_state="expanded"
+    page_title="WattWise | Predictive Maintenance Platform",
+    page_icon="⚡",
+    initial_sidebar_state="collapsed"
 )
 
 # Inject Light Design System
 inject_glass_theme()
+
+# ─── Top Brand Header Bar ─────────────────────────────────────
+header_col1, header_col2 = st.columns([3, 1])
+with header_col1:
+    st.markdown(render_wattwise_logo(height=46, width=270), unsafe_allow_html=True)
+with header_col2:
+    st.markdown("""
+    <div style="display: flex; justify-content: flex-end; align-items: center; height: 100%;">
+        <div class="wattwise-status-pill">
+            <span class="status-dot-green"></span>
+            <span><b>System Online</b> | SCADA Stream 2s</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
 # ─── DB Connection ────────────────────────────────────────────
 @st.cache_resource
@@ -196,27 +212,40 @@ def generate_work_order_pdf(asset_row):
 
 REGIONS = list(config.REGIONAL_MODIFIERS.keys())
 
-# ─── Sidebar ──────────────────────────────────────────────────
-st.sidebar.markdown("<h2 style='color:#0284c7; font-weight:700; margin-bottom:0;'>WattWise</h2>", unsafe_allow_html=True)
-st.sidebar.markdown("<p style='color:#64748b; font-size:0.85rem;'>Solar & Wind Predictive Engine</p>", unsafe_allow_html=True)
-st.sidebar.divider()
+# ─── Navigation Tabs (Primary Top Menu Bar) ────────────────────
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Fleet Overview",
+    "Asset Deep Dive",
+    "Maintenance Queue",
+    "Financial Impact",
+    "Asset Manager",
+    "Command Center"
+])
 
-auto_refresh = st.sidebar.checkbox("Auto-refresh Live Feed", value=False)
-if auto_refresh:
-    refresh_interval = st.sidebar.slider("Refresh interval (s)", 3, 30, 6)
+# ─── Linear Horizontal Filter Toolbar ──────────────────────────
+st.markdown("<div class='linear-filter-bar'>", unsafe_allow_html=True)
+tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2, 2, 2, 2])
 
-st.sidebar.markdown("### Fleet Filters")
-asset_type_filter = st.sidebar.selectbox("Asset Type", ["All", "Wind Turbine", "Solar Panel"])
-region_filter = st.sidebar.selectbox("Region", ["All"] + REGIONS)
+with tf_col1:
+    asset_type_filter = st.selectbox("Asset Type Filter", ["All", "Wind Turbine", "Solar Panel"], key="toolbar_asset_type")
 
-st.sidebar.divider()
-st.sidebar.markdown("""
-<div style="background: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.8); font-size: 0.8rem; color: #475569;">
-    <div><b>System Online</b></div>
-    <div style="margin-top:4px;">DB: mongodb://localhost:27017</div>
-    <div>Tick Rate: 2s SCADA stream</div>
-</div>
-""", unsafe_allow_html=True)
+with tf_col2:
+    region_filter = st.selectbox("Region Filter", ["All"] + REGIONS, key="toolbar_region")
+
+with tf_col3:
+    auto_refresh = st.checkbox("Auto-refresh Live Feed", value=False, key="toolbar_auto_refresh")
+    if auto_refresh:
+        refresh_interval = st.slider("Refresh Interval (s)", 3, 30, 6, key="toolbar_interval")
+
+with tf_col4:
+    st.markdown("""
+    <div style="font-size:0.8rem; color:#475569; padding-top:4px;">
+        <div><b>Telemetry Status:</b> Live SCADA Stream</div>
+        <div style="color:#0284c7; font-weight:600;">DB: mongodb://localhost:27017</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # ─── Helpers ──────────────────────────────────────────────────
 hc = AssetHealthCalculator()
@@ -284,8 +313,9 @@ def process_assets(assets, telemetry_docs):
             badge = '<span class="badge-critical">Critical</span>'
             
         rec['status_badge'] = badge
+        simple_status = 'Healthy' if rec['health_status'] == 'Healthy' else 'Warning' if rec['health_status'] in ['Warning', 'Scheduled'] else 'Critical'
         rec['asset_type_label'] = 'Wind Turbine' if atype == 'wind_turbine' else 'Solar Panel'
-        rec['asset_health_category'] = f"{rec['asset_type_label']} - {rec['health_status']}"
+        rec['asset_health_category'] = f"{rec['asset_type_label']} - {simple_status}"
         processed.append(rec)
 
     return processed
@@ -387,11 +417,9 @@ with tab1:
                 'Wind Turbine - Healthy': '#10b981',
                 'Wind Turbine - Warning': '#f59e0b',
                 'Wind Turbine - Critical': '#ef4444',
-                'Wind Turbine - Failure Imminent': '#991b1b',
-                'Solar Panel - Healthy': '#06b6d4',
-                'Solar Panel - Warning': '#f97316',
-                'Solar Panel - Critical': '#dc2626',
-                'Solar Panel - Failure Imminent': '#7f1d1d'
+                'Solar Panel - Healthy': '#10b981',
+                'Solar Panel - Warning': '#f59e0b',
+                'Solar Panel - Critical': '#ef4444'
             }
 
             if proj_choice == "Google Earth Satellite View":

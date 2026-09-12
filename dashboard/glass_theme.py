@@ -18,12 +18,20 @@ html, body, [class*="css"] {
     color: #0f172a !important;
 }
 
-/* --- Force Light App Background --- */
+/* --- Force Light App Background & Padding --- */
 .stApp {
     background-color: #f8fafc !important;
 }
 
-/* --- Sidebar: Crisp Dark Text on Light Surface --- */
+.main .block-container {
+    padding-top: 1.25rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    max-width: 100% !important;
+}
+
+/* --- Sidebar: Clean collapse / hide option --- */
 section[data-testid="stSidebar"] {
     background-color: #ffffff !important;
     border-right: 1px solid #cbd5e1 !important;
@@ -40,6 +48,50 @@ section[data-testid="stSidebar"] h3 {
     font-weight: 600 !important;
 }
 
+/* --- Header & Brand Banner --- */
+.wattwise-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+}
+
+.wattwise-status-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.status-dot-green {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #10b981;
+}
+
+/* --- Linear Filter Toolbar --- */
+.linear-filter-bar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+}
+
 /* --- Fix Selectboxes & Inputs --- */
 div[data-baseweb="select"] > div {
     background-color: #ffffff !important;
@@ -52,11 +104,27 @@ div[data-baseweb="select"] * {
     color: #0f172a !important;
 }
 
-/* --- Fix Tab Text --- */
+/* --- Navigation Tabs (Prominent Top Menu Bar) --- */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px !important;
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    padding: 6px 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+    margin-bottom: 18px !important;
+}
+
 button[data-baseweb="tab"] {
     background: transparent !important;
-    border: none !important;
-    padding: 8px 16px !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+button[data-baseweb="tab"]:hover {
+    background-color: #f1f5f9 !important;
 }
 
 button[data-baseweb="tab"] p,
@@ -66,14 +134,15 @@ button[data-baseweb="tab"] span {
     font-size: 0.95rem !important;
 }
 
+button[aria-selected="true"] {
+    background-color: #f0f9ff !important;
+    border: 1px solid #bae6fd !important;
+}
+
 button[aria-selected="true"] p,
 button[aria-selected="true"] span {
     color: #0284c7 !important;
     font-weight: 800 !important;
-}
-
-button[aria-selected="true"] {
-    border-bottom: 3px solid #0284c7 !important;
 }
 
 /* --- Metric Box --- */
@@ -147,6 +216,31 @@ button[aria-selected="true"] {
 def inject_glass_theme():
     """Inject clean light CSS into Streamlit."""
     st.markdown(GLASS_CSS, unsafe_allow_html=True)
+
+def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
+    """Returns SVG vector logo for WattWise Predictive Engine."""
+    return f"""
+    <div style="display: inline-flex; align-items: center; gap: 12px; vertical-align: middle;">
+        <svg width="{width}" height="{height}" viewBox="0 0 240 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Icon Background Hexagon / Circle with Gradient -->
+            <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#0284c7" />
+                    <stop offset="100%" stop-color="#10b981" />
+                </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="38" height="38" rx="10" fill="url(#logoGrad)" />
+            <!-- Wind Turbine Blade + Lightning Bolt Motif -->
+            <path d="M22 9L15 22H21L19 33L28 19H22L24 9Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.2" stroke-linejoin="round"/>
+            <circle cx="31" cy="11" r="2.5" fill="#38bdf8"/>
+            <circle cx="11" cy="31" r="2" fill="#34d399"/>
+            
+            <!-- WattWise Brand Typography -->
+            <text x="50" y="25" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="22" fill="#0f172a" letter-spacing="-0.5">Watt<tspan fill="#0284c7">Wise</tspan></text>
+            <text x="50" y="36" font-family="'Inter', system-ui, sans-serif" font-weight="600" font-size="8.5" fill="#64748b" letter-spacing="0.8">SOLAR &amp; WIND PREDICTIVE ENGINE</text>
+        </svg>
+    </div>
+    """
 
 def render_glass_card(title: str, value: str, subtitle: str = "", icon: str = "", color: str = "#0f172a"):
     """Render a crisp HTML metric card."""
