@@ -163,11 +163,13 @@ class EmailNotifier:
             top_issue, lead_days, daily_loss, repair_cost, net_savings, action
         )
 
-        recipient = getattr(config, 'ALERT_RECIPIENT_EMAIL', 'maintenance-ops@cleanenergypdm.com')
-        smtp_user = getattr(config, 'SMTP_USER', '')
-        smtp_pass = getattr(config, 'SMTP_PASSWORD', '')
-        smtp_host = getattr(config, 'SMTP_SERVER', 'smtp.gmail.com')
-        smtp_port = getattr(config, 'SMTP_PORT', 587)
+        db = self._get_db()
+        email_cfg = db['settings'].find_one({'key': 'email_config'}) or {}
+        recipient = email_cfg.get('recipient_email') or os.getenv('ALERT_RECIPIENT_EMAIL', 'operator@energycorp.com')
+        smtp_host = email_cfg.get('smtp_host') or os.getenv('SMTP_HOST', 'smtp.gmail.com')
+        smtp_port = email_cfg.get('smtp_port') or int(os.getenv('SMTP_PORT', 587))
+        smtp_user = email_cfg.get('smtp_user') or os.getenv('SMTP_USER', '')
+        smtp_pass = email_cfg.get('smtp_pass') or os.getenv('SMTP_PASS', '')
 
         delivery_status = "Logged to DB (Mock SMTP Mode)"
 

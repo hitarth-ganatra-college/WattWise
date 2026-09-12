@@ -332,7 +332,7 @@ with tab1:
     with ft2:
         region_filter = st.selectbox("Region", ["All"] + REGIONS, key="toolbar_region")
     with ft3:
-        auto_refresh = st.checkbox("Auto-refresh", value=False, key="toolbar_auto_refresh")
+        auto_refresh = st.checkbox("Auto-refresh", value=True, key="toolbar_auto_refresh")
     with ft4:
         st.markdown(
             '<div style="font-size:0.75rem;color:#9ca3af;padding-top:6px;">'
@@ -790,6 +790,45 @@ with tab3:
             df_rep_display.columns = ['Repaired Timestamp (UTC)', 'Asset ID', 'Type', 'OEM Hardware', 'Fault Serviced', 'AHI Before', 'AHI After', 'Repair Cost ($)', 'Net Money Saved ($)', 'Status']
             st.dataframe(df_rep_display, use_container_width=True, hide_index=True)
 
+        # Email Notification Settings Form
+        st.divider()
+        st.markdown("### Email Alert Dispatch Configuration & Recipient Settings")
+        st.caption("Configure the destination email address and optional SMTP server credentials for automated critical equipment alerts.")
+
+        db = get_db()
+        current_cfg = db['settings'].find_one({'key': 'email_config'}) or {}
+        saved_email = current_cfg.get('recipient_email', 'operator@energycorp.com')
+        saved_smtp_h = current_cfg.get('smtp_host', 'smtp.gmail.com')
+        saved_smtp_p = current_cfg.get('smtp_port', 587)
+        saved_smtp_u = current_cfg.get('smtp_user', '')
+
+        with st.form("email_settings_form"):
+            col_e1, col_e2 = st.columns([2, 2])
+            with col_e1:
+                recipient_input = st.text_input("Alert Recipient Email Address", value=saved_email, help="All automated HTML failure alerts (<50 AHI) will be sent to this email address.")
+                smtp_user_input = st.text_input("SMTP Outbound User / Email", value=saved_smtp_u, placeholder="e.g., alert-dispatcher@yourcompany.com")
+            with col_e2:
+                smtp_host_input = st.text_input("SMTP Host Server", value=saved_smtp_h)
+                col_p1, col_p2 = st.columns(2)
+                with col_p1:
+                    smtp_port_input = st.number_input("SMTP Port", value=int(saved_smtp_p), min_value=1, max_value=65535)
+                with col_p2:
+                    smtp_pass_input = st.text_input("SMTP App Password", type="password", placeholder="App Password")
+
+            if st.form_submit_button("Save Email Preferences", use_container_width=True):
+                new_settings = {
+                    'key': 'email_config',
+                    'recipient_email': recipient_input.strip(),
+                    'smtp_host': smtp_host_input.strip(),
+                    'smtp_port': int(smtp_port_input),
+                    'smtp_user': smtp_user_input.strip(),
+                    'smtp_pass': smtp_pass_input if smtp_pass_input else current_cfg.get('smtp_pass', ''),
+                    'updated_at': datetime.now(timezone.utc)
+                }
+                db['settings'].update_one({'key': 'email_config'}, {'$set': new_settings}, upsert=True)
+                st.success(f"Email preferences saved successfully! Automated alerts will now be dispatched to **{recipient_input.strip()}**.")
+                st.cache_data.clear()
+
         # Render Dispatched Email & System Alert Inbox from MongoDB
         st.divider()
         st.markdown("### Dispatched HTML Email Alerts & System Notices (MongoDB Log)")
@@ -1053,7 +1092,7 @@ with tab6:
         avail_cmd = [c for c in ['asset_id', 'action', 'parameters', 'status', 'created_at'] if c in df_cmd.columns]
         st.dataframe(df_cmd[avail_cmd], use_container_width=True, hide_index=True)
 
-# ─── Auto Refresh Loop ────────────────────────────────────────
-if auto_refresh:
-    time.sleep(refresh_interval)
+# ─── Auto Refresh Loop (Default ON) ───────────────────────────
+if st.session_state.get("toolbar_auto_refresh", True):
+    time.sleep(2)
     st.rerun()
