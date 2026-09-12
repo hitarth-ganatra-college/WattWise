@@ -23,23 +23,23 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
     <style>
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
         #info {{
-            position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 12px;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
-            padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10;
+            position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 13px; line-height: 1.5;
+            background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px);
+            padding: 12px 16px; border-radius: 10px; border: 1.5px solid #cbd5e1;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 10;
         }}
         .annotation {{
             position: absolute; pointer-events: none; transform: translate(-50%, -100%);
-            background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;
-            padding: 5px 9px; border-radius: 6px; font-size: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(56, 189, 248, 0.6); color: #ffffff;
+            padding: 8px 14px; border-radius: 8px; font-size: 13px; line-height: 1.4;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
         }}
-        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 11px; margin-bottom: 2px; }}
+        .annotation-title {{ font-weight: 800; color: #38bdf8; font-size: 13px; margin-bottom: 3px; letter-spacing: 0.3px; }}
         .annotation-dot {{
-            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-            width: 7px; height: 7px; background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 8px #38bdf8;
+            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            width: 10px; height: 10px; background: #38bdf8; border-radius: 50%;
+            box-shadow: 0 0 12px #38bdf8;
         }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -241,23 +241,23 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
     <style>
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
         #info {{
-            position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 12px;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
-            padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10;
+            position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 13px; line-height: 1.5;
+            background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px);
+            padding: 12px 16px; border-radius: 10px; border: 1.5px solid #cbd5e1;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 10;
         }}
         .annotation {{
             position: absolute; pointer-events: none; transform: translate(-50%, -100%);
-            background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;
-            padding: 5px 9px; border-radius: 6px; font-size: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(56, 189, 248, 0.6); color: #ffffff;
+            padding: 8px 14px; border-radius: 8px; font-size: 13px; line-height: 1.4;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
         }}
-        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 11px; margin-bottom: 2px; }}
+        .annotation-title {{ font-weight: 800; color: #38bdf8; font-size: 13px; margin-bottom: 3px; letter-spacing: 0.3px; }}
         .annotation-dot {{
-            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-            width: 7px; height: 7px; background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 8px #38bdf8;
+            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            width: 10px; height: 10px; background: #38bdf8; border-radius: 50%;
+            box-shadow: 0 0 12px #38bdf8;
         }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

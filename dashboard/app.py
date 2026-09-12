@@ -201,20 +201,8 @@ if "toolbar_asset_type" not in st.session_state:
 if "toolbar_region" not in st.session_state:
     st.session_state["toolbar_region"] = "All"
 
-asset_type_filter = st.session_state.get("toolbar_asset_type", "All")
-region_filter = st.session_state.get("toolbar_region", "All")
-
-# ─── 1. Primary Navigation Menu Bar (At the Very Top) ──────────
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Fleet Overview",
-    "Asset Deep Dive",
-    "Maintenance Queue",
-    "Financial Impact",
-    "Asset Manager",
-    "Command Center"
-])
-
-# ─── 2. Top Executive Brand Header Bar (Tailwind UI Navbar Card) ──
+# ─── 1. Top Navbar: Logo + Navigation Tabs + Status ───────────
+# Logo + Status Pill (top header row)
 st.markdown(
     '<div class="tw-navbar">'
     f'<div>{render_wattwise_logo(height=42, width=240)}</div>'
@@ -223,16 +211,14 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("<hr class='tw-divider'/>", unsafe_allow_html=True)
-
-# ─── 3. Linear Horizontal Filter Toolbar ──────────────────────────
+# ─── 2. Linear Horizontal Filter Toolbar ──────────────────────
 tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2.5, 2.5, 2.5, 2.5])
 
 with tf_col1:
-    asset_type_filter = st.selectbox("Asset Type Filter", ["All", "Wind Turbine", "Solar Panel"], key="toolbar_asset_type")
+    asset_type_filter = st.selectbox("Asset Type", ["All", "Wind Turbine", "Solar Panel"], key="toolbar_asset_type")
 
 with tf_col2:
-    region_filter = st.selectbox("Region Filter", ["All"] + REGIONS, key="toolbar_region")
+    region_filter = st.selectbox("Region", ["All"] + REGIONS, key="toolbar_region")
 
 with tf_col3:
     auto_refresh = st.checkbox("Auto-refresh Live Feed", value=False, key="toolbar_auto_refresh")
@@ -248,8 +234,18 @@ with tf_col4:
         unsafe_allow_html=True
     )
 
-# ─── Explicit Line Gap & Section Divider Between Filters & Data ──
-st.markdown("<hr class='tw-divider' style='margin: 28px 0 32px 0; border-top: 2px solid #cbd5e1;'/>", unsafe_allow_html=True)
+# ─── Section Divider Between Filters & Content ───────────────
+st.markdown("<hr class='tw-divider'/>", unsafe_allow_html=True)
+
+# ─── 3. Navigation Tabs (below header, above content) ─────────
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Fleet Overview",
+    "Asset Deep Dive",
+    "Maintenance Queue",
+    "Financial Impact",
+    "Asset Manager",
+    "Command Center"
+])
 
 # ─── Helpers ──────────────────────────────────────────────────
 hc = AssetHealthCalculator()
