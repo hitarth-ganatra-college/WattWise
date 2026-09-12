@@ -6,19 +6,22 @@ Renders rotatable, real-time 3D models using Three.js inside Streamlit component
 - Solar Panel: Rotatable 3D solar table with tilt angle, grid cells, sunbeams, and dust soiling opacity.
 """
 
+import time
 import streamlit as st
 import streamlit.components.v1 as components
 
-def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health_status: str = "Healthy", height: int = 440):
-    """Render a realistic 3D Wind Turbine model with scattered callout cards and dynamic SVG leader lines to origin points."""
+def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health_status: str = "Healthy", height: int = 460):
+    """Render a realistic 3D Wind Turbine model with scattered perimeter callout cards and dynamic SVG leader lines to origin points."""
     
     speed_factor = max(0.01, min(0.35, (rpm / 1800.0) * 0.18)) if rpm > 0 else 0.002
     gearbox_color = "0xef4444" if gearbox_temp > 80 else ("0xf59e0b" if gearbox_temp > 65 else "0xe2e8f0")
     badge_color = "#ef4444" if gearbox_temp > 80 else ("#f59e0b" if gearbox_temp > 65 else "#10b981")
+    ts = time.time()
 
     html_code = f"""<!DOCTYPE html>
 <html>
 <head>
+    <!-- Cache buster timestamp: {ts} -->
     <meta charset="utf-8">
     <style>
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
@@ -31,7 +34,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         .annotation {{
             position: absolute; pointer-events: none;
             background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);
-            border: 1.5px solid rgba(56, 189, 248, 0.6); color: #ffffff;
+            border: 1.5px solid rgba(56, 189, 248, 0.7); color: #ffffff;
             padding: 6px 12px; border-radius: 8px; font-size: 11px; line-height: 1.4;
             box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
         }}
@@ -51,20 +54,20 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 
     <!-- SVG Canvas Overlay for Leader Lines -->
     <svg id="svg-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;">
-        <line id="line-nacelle" stroke="{badge_color}" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-nacelle" r="5" fill="{badge_color}" />
+        <line id="line-nacelle" stroke="{badge_color}" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-nacelle" r="6" fill="{badge_color}" stroke="#ffffff" stroke-width="1.5" />
 
-        <line id="line-rotor" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-rotor" r="5" fill="#38bdf8" />
+        <line id="line-rotor" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-rotor" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
 
-        <line id="line-tower" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-tower" r="5" fill="#38bdf8" />
+        <line id="line-tower" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-tower" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
 
-        <line id="line-base" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-base" r="5" fill="#38bdf8" />
+        <line id="line-base" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-base" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
     </svg>
 
-    <!-- Scattered Dynamic Component Callout Overlay Badges -->
+    <!-- Perimeter-Scattered Callout Badges -->
     <div id="anno-nacelle" class="annotation" style="top: 14px; right: 14px;">
         <div class="annotation-title">GEARBOX & GENERATOR HOUSING</div>
         <div>Temp: <b style="color:{badge_color};">{gearbox_temp:.1f} °C</b></div>
@@ -75,12 +78,12 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         <div>Rotor Speed: <b>{rpm:.1f} RPM</b></div>
     </div>
 
-    <div id="anno-tower" class="annotation" style="top: 155px; right: 14px;">
+    <div id="anno-tower" class="annotation" style="bottom: 14px; right: 14px;">
         <div class="annotation-title">STEEL SUPPORT TOWER</div>
         <div>13m Tapered Tubular Steel</div>
     </div>
 
-    <div id="anno-base" class="annotation" style="bottom: 14px; right: 14px;">
+    <div id="anno-base" class="annotation" style="bottom: 14px; left: 14px;">
         <div class="annotation-title">FOUNDATION BASE</div>
         <div>Concrete Anchor Pad</div>
     </div>
@@ -237,7 +240,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
                 const originY = (tempV.y * -.5 + .5) * window.innerHeight;
 
                 const rect = anno.card.getBoundingClientRect();
-                const cardX = rect.left;
+                const cardX = (rect.left < window.innerWidth / 2) ? rect.right : rect.left;
                 const cardY = rect.top + rect.height / 2;
 
                 anno.line.setAttribute('x1', cardX);
@@ -273,15 +276,17 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
     components.html(html_code, height=height, scrolling=False)
 
 
-def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0, panel_temp: float = 45.0, health_status: str = "Healthy", height: int = 440):
-    """Render a realistic 3D Photovoltaic Solar Array with dynamic cell textures and 3D screen-projected component labels."""
+def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0, panel_temp: float = 45.0, health_status: str = "Healthy", height: int = 460):
+    """Render a realistic 3D Photovoltaic Solar Array with scattered perimeter callout cards and dynamic SVG leader lines to origin points."""
     
     dust_opacity = max(0.0, min(0.65, (1.0 - soiling_factor) * 2.2))
     badge_color = "#ef4444" if health_status == "Critical" else ("#f59e0b" if health_status == "Warning" else "#10b981")
+    ts = time.time()
 
     html_code = f"""<!DOCTYPE html>
 <html>
 <head>
+    <!-- Cache buster timestamp: {ts} -->
     <meta charset="utf-8">
     <style>
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
@@ -292,18 +297,13 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 10; min-width: 220px;
         }}
         .annotation {{
-            position: absolute; pointer-events: none; transform: translate(-50%, -100%);
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(6px);
-            border: 1px solid rgba(56, 189, 248, 0.5); color: #ffffff;
-            padding: 4px 8px; border-radius: 6px; font-size: 10px; line-height: 1.3;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
+            position: absolute; pointer-events: none;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);
+            border: 1.5px solid rgba(56, 189, 248, 0.7); color: #ffffff;
+            padding: 6px 12px; border-radius: 8px; font-size: 11px; line-height: 1.4;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
         }}
-        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 10.5px; margin-bottom: 2px; }}
-        .annotation-dot {{
-            position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
-            width: 6px; height: 6px; background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 6px #38bdf8;
-        }}
+        .annotation-title {{ font-weight: 800; color: #38bdf8; font-size: 11.5px; margin-bottom: 2px; letter-spacing: 0.3px; }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -320,17 +320,17 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
 
     <!-- SVG Canvas Overlay for Leader Lines -->
     <svg id="svg-overlay-solar" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:4;">
-        <line id="line-modules" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-modules" r="5" fill="#38bdf8" />
+        <line id="line-modules" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-modules" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
 
-        <line id="line-soiling" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-soiling" r="5" fill="#f59e0b" />
+        <line id="line-soiling" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-soiling" r="6" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" />
 
-        <line id="line-mount" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
-        <circle id="dot-mount" r="5" fill="#38bdf8" />
+        <line id="line-mount" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="6,4" />
+        <circle id="dot-mount" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
     </svg>
 
-    <!-- Scattered Dynamic Component Callout Overlay Badges -->
+    <!-- Perimeter-Scattered Component Callout Badges -->
     <div id="anno-modules" class="annotation" style="top: 14px; right: 14px;">
         <div class="annotation-title">SILICON PV MODULES ARRAY</div>
         <div>Irradiance: <b>{irradiance:.1f} W/m²</b></div>
@@ -341,7 +341,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         <div>Soiling Ratio: <b>{soiling_factor:.2f}</b></div>
     </div>
 
-    <div id="anno-mount" class="annotation" style="top: 155px; right: 14px;">
+    <div id="anno-mount" class="annotation" style="bottom: 14px; left: 14px;">
         <div class="annotation-title">GALVANIZED STEEL MOUNT</div>
         <div>25° Optimal Tilt Rack</div>
     </div>
@@ -554,7 +554,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 const originY = (tempV.y * -.5 + .5) * window.innerHeight;
 
                 const rect = anno.card.getBoundingClientRect();
-                const cardX = rect.left;
+                const cardX = (rect.left < window.innerWidth / 2) ? rect.right : rect.left;
                 const cardY = rect.top + rect.height / 2;
 
                 anno.line.setAttribute('x1', cardX);
