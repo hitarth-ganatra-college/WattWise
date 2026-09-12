@@ -24,7 +24,11 @@ import config
 from business_logic.health_index import AssetHealthCalculator
 from business_logic.financial_engine import FinancialEngine
 from dashboard.glass_theme import inject_glass_theme, render_glass_card, apply_plotly_glass_layout, render_wattwise_logo, render_topbar
-from dashboard.three_asset_viewer import render_3d_wind_turbine, render_3d_solar_panel
+import importlib
+import dashboard.three_asset_viewer as tav
+importlib.reload(tav)
+render_3d_wind_turbine = tav.render_3d_wind_turbine
+render_3d_solar_panel = tav.render_3d_solar_panel
 
 # ─── Page Config ──────────────────────────────────────────────
 st.set_page_config(
