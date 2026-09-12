@@ -39,20 +39,13 @@ st.set_page_config(
 inject_glass_theme()
 
 # ─── Top Brand Header Bar ─────────────────────────────────────
-header_col1, header_col2 = st.columns([3, 1])
-with header_col1:
-    st.markdown(render_wattwise_logo(height=46, width=270), unsafe_allow_html=True)
-with header_col2:
-    st.markdown("""
-    <div style="display: flex; justify-content: flex-end; align-items: center; height: 100%;">
-        <div class="wattwise-status-pill">
-            <span class="status-dot-green"></span>
-            <span><b>System Online</b> | SCADA Stream 2s</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
+st.markdown(
+    f'<div class="wattwise-header-bar">'
+    f'<div>{render_wattwise_logo(height=44, width=250)}</div>'
+    f'<div class="wattwise-status-pill"><span class="status-dot-green"></span><span><b>System Online</b> | SCADA Stream 2s</span></div>'
+    f'</div>',
+    unsafe_allow_html=True
+)
 
 # ─── DB Connection ────────────────────────────────────────────
 @st.cache_resource
@@ -212,19 +205,9 @@ def generate_work_order_pdf(asset_row):
 
 REGIONS = list(config.REGIONAL_MODIFIERS.keys())
 
-# ─── Navigation Tabs (Primary Top Menu Bar) ────────────────────
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Fleet Overview",
-    "Asset Deep Dive",
-    "Maintenance Queue",
-    "Financial Impact",
-    "Asset Manager",
-    "Command Center"
-])
-
 # ─── Linear Horizontal Filter Toolbar ──────────────────────────
 st.markdown("<div class='linear-filter-bar'>", unsafe_allow_html=True)
-tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2, 2, 2, 2])
+tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2.5, 2.5, 2.5, 2.5])
 
 with tf_col1:
     asset_type_filter = st.selectbox("Asset Type Filter", ["All", "Wind Turbine", "Solar Panel"], key="toolbar_asset_type")
@@ -347,7 +330,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ─── Navigation Tabs ──────────────────────────────────────────
+# ─── Primary Navigation Menu Bar ──────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Fleet Overview",
     "Asset Deep Dive",
@@ -417,9 +400,11 @@ with tab1:
                 'Wind Turbine - Healthy': '#10b981',
                 'Wind Turbine - Warning': '#f59e0b',
                 'Wind Turbine - Critical': '#ef4444',
-                'Solar Panel - Healthy': '#10b981',
-                'Solar Panel - Warning': '#f59e0b',
-                'Solar Panel - Critical': '#ef4444'
+                'Wind Turbine - Failure Imminent': '#991b1b',
+                'Solar Panel - Healthy': '#06b6d4',
+                'Solar Panel - Warning': '#f97316',
+                'Solar Panel - Critical': '#dc2626',
+                'Solar Panel - Failure Imminent': '#7f1d1d'
             }
 
             if proj_choice == "Google Earth Satellite View":

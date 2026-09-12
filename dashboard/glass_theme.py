@@ -218,29 +218,26 @@ def inject_glass_theme():
     st.markdown(GLASS_CSS, unsafe_allow_html=True)
 
 def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
-    """Returns SVG vector logo for WattWise Predictive Engine."""
-    return f"""
-    <div style="display: inline-flex; align-items: center; gap: 12px; vertical-align: middle;">
-        <svg width="{width}" height="{height}" viewBox="0 0 240 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Icon Background Hexagon / Circle with Gradient -->
-            <defs>
-                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#0284c7" />
-                    <stop offset="100%" stop-color="#10b981" />
-                </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="38" height="38" rx="10" fill="url(#logoGrad)" />
-            <!-- Wind Turbine Blade + Lightning Bolt Motif -->
-            <path d="M22 9L15 22H21L19 33L28 19H22L24 9Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.2" stroke-linejoin="round"/>
-            <circle cx="31" cy="11" r="2.5" fill="#38bdf8"/>
-            <circle cx="11" cy="31" r="2" fill="#34d399"/>
-            
-            <!-- WattWise Brand Typography -->
-            <text x="50" y="25" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="22" fill="#0f172a" letter-spacing="-0.5">Watt<tspan fill="#0284c7">Wise</tspan></text>
-            <text x="50" y="36" font-family="'Inter', system-ui, sans-serif" font-weight="600" font-size="8.5" fill="#64748b" letter-spacing="0.8">SOLAR &amp; WIND PREDICTIVE ENGINE</text>
-        </svg>
-    </div>
-    """
+    """Returns SVG vector logo for WattWise Predictive Engine without markdown code block indentation."""
+    svg_str = (
+        f'<div style="display: inline-flex; align-items: center; gap: 12px; vertical-align: middle;">'
+        f'<svg width="{width}" height="{height}" viewBox="0 0 240 42" fill="none" xmlns="http://www.w3.org/2000/svg">'
+        f'<defs>'
+        f'<linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">'
+        f'<stop offset="0%" stop-color="#0284c7" />'
+        f'<stop offset="100%" stop-color="#10b981" />'
+        f'</linearGradient>'
+        f'</defs>'
+        f'<rect x="2" y="2" width="38" height="38" rx="10" fill="url(#logoGrad)" />'
+        f'<path d="M22 9L15 22H21L19 33L28 19H22L24 9Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.2" stroke-linejoin="round"/>'
+        f'<circle cx="31" cy="11" r="2.5" fill="#38bdf8"/>'
+        f'<circle cx="11" cy="31" r="2" fill="#34d399"/>'
+        f'<text x="50" y="25" font-family="\'Inter\', system-ui, sans-serif" font-weight="800" font-size="22" fill="#0f172a" letter-spacing="-0.5">Watt<tspan fill="#0284c7">Wise</tspan></text>'
+        f'<text x="50" y="36" font-family="\'Inter\', system-ui, sans-serif" font-weight="600" font-size="8.5" fill="#64748b" letter-spacing="0.8">SOLAR &amp; WIND PREDICTIVE ENGINE</text>'
+        f'</svg>'
+        f'</div>'
+    )
+    return svg_str
 
 def render_glass_card(title: str, value: str, subtitle: str = "", icon: str = "", color: str = "#0f172a"):
     """Render a crisp HTML metric card."""
