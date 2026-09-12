@@ -1,7 +1,7 @@
 """
-Clean Light Executive Dashboard for WattWise PdM Platform (v2.0 UI Overhaul)
-========================================================================
-Consumes SCADA telemetry, ML anomaly scores, and financial risk engine.
+WattWise Executive Dashboard — Modern Enterprise UI (v3.0)
+===========================================================
+Fin/Lovable/Mintlify-inspired navbar, clean sections, refined typography.
 """
 
 import streamlit as st
@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 from business_logic.health_index import AssetHealthCalculator
 from business_logic.financial_engine import FinancialEngine
-from dashboard.glass_theme import inject_glass_theme, render_glass_card, apply_plotly_glass_layout, render_wattwise_logo
+from dashboard.glass_theme import inject_glass_theme, render_glass_card, apply_plotly_glass_layout, render_wattwise_logo, render_topbar
 from dashboard.three_asset_viewer import render_3d_wind_turbine, render_3d_solar_panel
 
 # ─── Page Config ──────────────────────────────────────────────
@@ -195,49 +195,20 @@ def generate_work_order_pdf(asset_row):
 
 REGIONS = list(config.REGIONAL_MODIFIERS.keys())
 
-# ─── Data Filtering Logic Setup ───────────────────────────────
+# ─── Session state defaults ──────────────────────────────────
 if "toolbar_asset_type" not in st.session_state:
     st.session_state["toolbar_asset_type"] = "All"
 if "toolbar_region" not in st.session_state:
     st.session_state["toolbar_region"] = "All"
 
-# ─── 1. Top Navbar: Logo + Navigation Tabs + Status ───────────
-# Logo + Status Pill (top header row)
-st.markdown(
-    '<div class="tw-navbar">'
-    f'<div>{render_wattwise_logo(height=42, width=240)}</div>'
-    '<div class="wattwise-status-pill"><span class="status-dot-green"></span><span><b>System Online</b> | SCADA Stream 2s</span></div>'
-    '</div>',
-    unsafe_allow_html=True
-)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TOP NAVBAR — Logo left | Status right (single clean bar)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+st.markdown(render_topbar(), unsafe_allow_html=True)
 
-# ─── 2. Linear Horizontal Filter Toolbar ──────────────────────
-tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2.5, 2.5, 2.5, 2.5])
-
-with tf_col1:
-    asset_type_filter = st.selectbox("Asset Type", ["All", "Wind Turbine", "Solar Panel"], key="toolbar_asset_type")
-
-with tf_col2:
-    region_filter = st.selectbox("Region", ["All"] + REGIONS, key="toolbar_region")
-
-with tf_col3:
-    auto_refresh = st.checkbox("Auto-refresh Live Feed", value=False, key="toolbar_auto_refresh")
-    if auto_refresh:
-        refresh_interval = st.slider("Refresh Interval (s)", 3, 30, 6, key="toolbar_interval")
-
-with tf_col4:
-    st.markdown(
-        '<div style="font-size:0.82rem; color:#475569; padding-top:4px;">'
-        '<div><b>Telemetry Status:</b> Live SCADA Stream</div>'
-        '<div style="color:#0284c7; font-weight:600;">DB: mongodb://localhost:27017</div>'
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-# ─── Section Divider Between Filters & Content ───────────────
-st.markdown("<hr class='tw-divider'/>", unsafe_allow_html=True)
-
-# ─── 3. Navigation Tabs (below header, above content) ─────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NAVIGATION TABS — Styled as clean text links via CSS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Fleet Overview",
     "Asset Deep Dive",
@@ -246,6 +217,11 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "Asset Manager",
     "Command Center"
 ])
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# FILTER TOOLBAR — Compact inline row (rendered outside tabs,
+# visible on every page)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 # ─── Helpers ──────────────────────────────────────────────────
 hc = AssetHealthCalculator()
@@ -321,6 +297,10 @@ def process_assets(assets, telemetry_docs):
     return processed
 
 # ─── Data Filtering ───────────────────────────────────────────
+# Read filter values from session state (set by selectboxes rendered below)
+asset_type_filter = st.session_state.get("toolbar_asset_type", "All")
+region_filter = st.session_state.get("toolbar_region", "All")
+
 all_assets = fetch_all_assets()
 
 filtered_assets = all_assets
@@ -341,6 +321,24 @@ if not df_assets.empty:
 
 # ── Tab 1: Fleet Overview ────────────────────────────────────
 with tab1:
+    # Compact filter bar at the top of the tab
+    ft1, ft2, ft3, ft4 = st.columns([2, 2, 3, 3])
+    with ft1:
+        asset_type_filter = st.selectbox("Asset Type", ["All", "Wind Turbine", "Solar Panel"], key="toolbar_asset_type")
+    with ft2:
+        region_filter = st.selectbox("Region", ["All"] + REGIONS, key="toolbar_region")
+    with ft3:
+        auto_refresh = st.checkbox("Auto-refresh", value=False, key="toolbar_auto_refresh")
+    with ft4:
+        st.markdown(
+            '<div style="font-size:0.75rem;color:#9ca3af;padding-top:6px;">'
+            '<b>Telemetry:</b> Live SCADA Stream &middot; 2s interval'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+    st.markdown("<hr class='ww-divider'/>", unsafe_allow_html=True)
+
     if df_assets.empty:
         st.markdown("""
         <div class="glass-metric" style="text-align:center; padding: 40px;">
@@ -354,6 +352,8 @@ with tab1:
         total_loss = df_assets['estimated_daily_revenue_loss'].sum()
         healthy_pct = ((total - at_risk) / total) * 100.0
 
+        # ── KPI Summary Cards ──
+        st.markdown('<div class="ww-section-title">Key Metrics</div>', unsafe_allow_html=True)
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             render_glass_card("Total Managed Assets", str(total), "Solar & Wind Units", "", "#0f172a")
@@ -364,7 +364,10 @@ with tab1:
         with c4:
             render_glass_card("Est. Daily Rev Loss", f"${total_loss:,.2f}", "Cost of Inaction", "", "#ef4444" if total_loss > 100 else "#0284c7")
 
-        st.markdown("<h4 style='color:#0f172a; margin-top:20px;'>Google Earth Fleet Satellite Map & Interactive 3D Inspection</h4>", unsafe_allow_html=True)
+        st.markdown("<hr class='ww-divider'/>", unsafe_allow_html=True)
+
+        # ── Satellite Map Section ──
+        st.markdown('<div class="ww-section-title">Fleet Satellite Map & 3D Inspection</div>', unsafe_allow_html=True)
         
         map_col1, map_col2 = st.columns([3, 1])
         with map_col2:

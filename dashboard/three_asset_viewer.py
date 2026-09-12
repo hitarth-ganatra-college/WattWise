@@ -23,23 +23,23 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
     <style>
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
         #info {{
-            position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 13px; line-height: 1.5;
-            background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px);
-            padding: 12px 16px; border-radius: 10px; border: 1.5px solid #cbd5e1;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 10;
+            position: absolute; top: 14px; left: 14px; color: #0f172a; font-size: 14px; line-height: 1.6;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            padding: 16px 20px; border-radius: 12px; border: 2px solid #cbd5e1;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 10; min-width: 220px;
         }}
         .annotation {{
             position: absolute; pointer-events: none; transform: translate(-50%, -100%);
-            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px);
-            border: 1.5px solid rgba(56, 189, 248, 0.6); color: #ffffff;
-            padding: 8px 14px; border-radius: 8px; font-size: 13px; line-height: 1.4;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(6px);
+            border: 1px solid rgba(56, 189, 248, 0.5); color: #ffffff;
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; line-height: 1.3;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
         }}
-        .annotation-title {{ font-weight: 800; color: #38bdf8; font-size: 13px; margin-bottom: 3px; letter-spacing: 0.3px; }}
+        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 10.5px; margin-bottom: 2px; }}
         .annotation-dot {{
-            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
-            width: 10px; height: 10px; background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 12px #38bdf8;
+            position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; background: #38bdf8; border-radius: 50%;
+            box-shadow: 0 0 6px #38bdf8;
         }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -47,11 +47,11 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 </head>
 <body>
     <div id="info">
-        <b style="color:#0f172a; font-size:13px;">3D INDUSTRIAL WIND TURBINE</b><br>
+        <b style="color:#0f172a; font-size:15px; letter-spacing:0.3px;">3D INDUSTRIAL WIND TURBINE</b><br>
         Generator Speed: <b>{rpm:.1f} RPM</b><br>
         Gearbox Temp: <b>{gearbox_temp:.1f} °C</b><br>
         Health Status: <b style="color:{badge_color};">{health_status}</b><br>
-        <span style="color:#64748b; font-size:10px;">Drag to rotate | Scroll to zoom</span>
+        <span style="color:#64748b; font-size:11px;">Drag to rotate | Scroll to zoom</span>
     </div>
 
     <!-- Dynamic 3D Component Callout Overlay Badges -->
@@ -241,23 +241,23 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
     <style>
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
         #info {{
-            position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 13px; line-height: 1.5;
-            background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(10px);
-            padding: 12px 16px; border-radius: 10px; border: 1.5px solid #cbd5e1;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 10;
+            position: absolute; top: 14px; left: 14px; color: #0f172a; font-size: 14px; line-height: 1.6;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            padding: 16px 20px; border-radius: 12px; border: 2px solid #cbd5e1;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 10; min-width: 220px;
         }}
         .annotation {{
             position: absolute; pointer-events: none; transform: translate(-50%, -100%);
-            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px);
-            border: 1.5px solid rgba(56, 189, 248, 0.6); color: #ffffff;
-            padding: 8px 14px; border-radius: 8px; font-size: 13px; line-height: 1.4;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.35); white-space: nowrap; z-index: 5;
+            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(6px);
+            border: 1px solid rgba(56, 189, 248, 0.5); color: #ffffff;
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; line-height: 1.3;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
         }}
-        .annotation-title {{ font-weight: 800; color: #38bdf8; font-size: 13px; margin-bottom: 3px; letter-spacing: 0.3px; }}
+        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 10.5px; margin-bottom: 2px; }}
         .annotation-dot {{
-            position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
-            width: 10px; height: 10px; background: #38bdf8; border-radius: 50%;
-            box-shadow: 0 0 12px #38bdf8;
+            position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; background: #38bdf8; border-radius: 50%;
+            box-shadow: 0 0 6px #38bdf8;
         }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -265,12 +265,12 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
 </head>
 <body>
     <div id="info">
-        <b style="color:#0f172a; font-size:13px;">3D COMMERCIAL SOLAR PV ARRAY</b><br>
+        <b style="color:#0f172a; font-size:15px; letter-spacing:0.3px;">3D COMMERCIAL SOLAR PV ARRAY</b><br>
         Solar Irradiance: <b>{irradiance:.1f} W/m²</b><br>
         Module Temp: <b>{panel_temp:.1f} °C</b><br>
         Soiling Ratio: <b>{soiling_factor:.2f}</b> (1.0 = Clean)<br>
         Health Status: <b style="color:{badge_color};">{health_status}</b><br>
-        <span style="color:#64748b; font-size:10px;">Drag to rotate | Scroll to zoom</span>
+        <span style="color:#64748b; font-size:11px;">Drag to rotate | Scroll to zoom</span>
     </div>
 
     <!-- Dynamic 3D Component Callout Overlay Badges -->

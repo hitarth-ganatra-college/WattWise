@@ -1,7 +1,8 @@
 """
-Light Theme Configuration for Streamlit Dashboard
-==================================================
-Overrides Streamlit dark mode defaults with explicit high-contrast light styles.
+WattWise Design System — Modern Enterprise UI
+================================================
+Inspired by Fin (Intercom), Lovable, Mintlify navbars.
+Clean single-row navbar, subtle section containers, refined typography.
 """
 
 import streamlit as st
@@ -18,236 +19,371 @@ html, body, [class*="css"] {
     color: #0f172a !important;
 }
 
-/* --- Force Light App Background & Padding --- */
+/* --- Force Light App Background --- */
 .stApp {
-    background-color: #f8fafc !important;
+    background-color: #fafafa !important;
 }
 
+/* --- Tighter page padding so navbar spans full width --- */
 .main .block-container {
-    padding-top: 1.25rem !important;
-    padding-bottom: 3rem !important;
-    padding-left: 2.5rem !important;
-    padding-right: 2.5rem !important;
+    padding-top: 0rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
     max-width: 100% !important;
 }
 
-/* --- Sidebar: Clean collapse / hide option --- */
-section[data-testid="stSidebar"] {
-    background-color: #ffffff !important;
-    border-right: 1px solid #cbd5e1 !important;
+/* Hide Streamlit default header/toolbar chrome */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    height: 0px !important;
+    min-height: 0px !important;
 }
 
-section[data-testid="stSidebar"] p,
-section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] span,
-section[data-testid="stSidebar"] div,
-section[data-testid="stSidebar"] h1,
-section[data-testid="stSidebar"] h2,
-section[data-testid="stSidebar"] h3 {
+/* --- Sidebar: Force collapse --- */
+section[data-testid="stSidebar"] {
+    display: none !important;
+}
+
+/* ================================================================
+   NAVBAR — Single-row bar: logo left, status right
+   ================================================================ */
+.ww-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 28px;
+    margin: 0 -2rem;
+    margin-top: -1rem;
+    margin-bottom: 0;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.ww-topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.ww-topbar-logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #0284c7, #10b981);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ww-topbar-brand {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+
+.ww-topbar-brand span {
+    color: #0284c7;
+}
+
+.ww-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.ww-status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #166534;
+}
+
+.ww-status-dot {
+    width: 7px;
+    height: 7px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    animation: ww-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ww-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+}
+
+/* ================================================================
+   NAVIGATION TABS — Styled as clean horizontal text links
+   ================================================================ */
+.stTabs {
+    margin-top: 0 !important;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    background-color: #ffffff !important;
+    border: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    border-radius: 0 !important;
+    padding: 0 12px !important;
+    gap: 0 !important;
+    margin: 0 -2rem !important;
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+    box-shadow: none !important;
+    width: auto !important;
+    justify-content: flex-start !important;
+}
+
+/* Remove the default Streamlit tab highlight bar */
+.stTabs [data-baseweb="tab-highlight"] {
+    background-color: #0f172a !important;
+    height: 2px !important;
+}
+
+.stTabs [data-baseweb="tab-border"] {
+    display: none !important;
+}
+
+button[data-baseweb="tab"] {
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 12px 18px !important;
+    margin: 0 !important;
+    transition: color 0.15s ease !important;
+    border-bottom: 2px solid transparent !important;
+}
+
+button[data-baseweb="tab"]:hover {
+    background-color: transparent !important;
+    border-bottom: 2px solid #d1d5db !important;
+}
+
+button[data-baseweb="tab"] p,
+button[data-baseweb="tab"] span {
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    letter-spacing: -0.01em !important;
+}
+
+button[aria-selected="true"] {
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid #0f172a !important;
+    box-shadow: none !important;
+}
+
+button[aria-selected="true"] p,
+button[aria-selected="true"] span {
     color: #0f172a !important;
     font-weight: 600 !important;
 }
 
-/* --- Tailwind Top Navbar Banner --- */
-.tw-navbar {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 24px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.wattwise-status-pill {
+/* ================================================================
+   FILTER BAR — Compact inline row
+   ================================================================ */
+.ww-filter-bar {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #334155;
+    gap: 16px;
+    padding: 10px 0;
+    margin-top: 12px;
+    margin-bottom: 4px;
 }
 
-.status-dot-green {
-    width: 8px;
-    height: 8px;
-    background-color: #10b981;
-    border-radius: 50%;
-    box-shadow: 0 0 8px #10b981;
-}
-
-/* --- Section Card with Modern Grey Shadow Border --- */
-.tw-section-card {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.04), 0 2px 4px -2px rgba(15, 23, 42, 0.03);
-    padding: 20px 24px;
-    margin-bottom: 24px;
-}
-
-.tw-section-header {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.01em;
-    padding-bottom: 12px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* --- Tailwind Section Divider Line --- */
-.tw-divider {
-    height: 1px;
-    background-color: #cbd5e1;
-    margin: 20px 0;
-    border: none;
-}
-
-/* --- Linear Filter Toolbar --- */
-.linear-filter-bar {
-    background: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    padding: 14px 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
-}
-
-/* --- Fix Selectboxes & Inputs --- */
+/* Selectbox refinements */
 div[data-baseweb="select"] > div {
     background-color: #ffffff !important;
     color: #0f172a !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #e5e7eb !important;
     border-radius: 8px !important;
+    font-size: 0.85rem !important;
+    min-height: 38px !important;
+}
+
+div[data-baseweb="select"] > div:hover {
+    border-color: #9ca3af !important;
 }
 
 div[data-baseweb="select"] * {
     color: #0f172a !important;
 }
 
-/* --- Navigation Tabs (Top Executive Navbar) --- */
-.stTabs [data-baseweb="tab-list"] {
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 12px !important;
-    padding: 6px 12px !important;
-    gap: 6px !important;
-    margin-bottom: 20px !important;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05) !important;
-    width: 100% !important;
-    justify-content: flex-start !important;
-}
-
-button[data-baseweb="tab"] {
-    background-color: transparent !important;
-    border: 1px solid transparent !important;
-    border-radius: 8px !important;
-    padding: 10px 20px !important;
-    transition: all 0.15s ease-in-out !important;
-}
-
-button[data-baseweb="tab"]:hover {
-    background-color: #f1f5f9 !important;
-}
-
-button[data-baseweb="tab"] p,
-button[data-baseweb="tab"] span {
-    color: #475569 !important;
+/* Selectbox labels */
+.stSelectbox label, .stCheckbox label, .stSlider label {
+    font-size: 0.78rem !important;
     font-weight: 600 !important;
-    font-size: 0.9rem !important;
+    color: #6b7280 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
 }
 
-button[aria-selected="true"] {
-    background-color: #f0f9ff !important;
-    border: 1px solid #bae6fd !important;
-    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.1) !important;
+/* ================================================================
+   DIVIDER
+   ================================================================ */
+.ww-divider {
+    height: 1px;
+    background: #e5e7eb;
+    border: none;
+    margin: 16px 0;
 }
 
-button[aria-selected="true"] p,
-button[aria-selected="true"] span {
-    color: #0284c7 !important;
-    font-weight: 700 !important;
+/* ================================================================
+   SECTION CONTAINERS — Subtle bordered cards
+   ================================================================ */
+.ww-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 
-/* --- Metric Cards with Greyish Modern Border --- */
+.ww-section:hover {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+}
+
+.ww-section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+}
+
+/* ================================================================
+   METRIC CARDS — Clean, minimal
+   ================================================================ */
 .glass-metric {
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 18px 22px;
-    box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
     margin-bottom: 12px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: box-shadow 0.15s ease;
 }
 
 .glass-metric:hover {
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .glass-metric-label {
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    color: #475569;
+    color: #9ca3af;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
 }
 
 .glass-metric-value {
-    font-size: 1.85rem;
+    font-size: 1.75rem;
     font-weight: 800;
     color: #0f172a;
-    margin: 4px 0;
+    margin: 6px 0 2px 0;
+    line-height: 1.1;
 }
 
 .glass-metric-sub {
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.78rem;
+    font-weight: 500;
     color: #0284c7;
 }
 
-/* --- Badges --- */
+/* ================================================================
+   BADGES
+   ================================================================ */
 .badge-healthy {
-    background-color: #dcfce7;
+    background-color: #f0fdf4;
     color: #166534;
-    border: 1px solid #86efac;
-    padding: 4px 12px;
+    border: 1px solid #bbf7d0;
+    padding: 3px 10px;
     border-radius: 20px;
-    font-weight: 700;
-    font-size: 0.85rem;
+    font-weight: 600;
+    font-size: 0.78rem;
     display: inline-block;
 }
 
 .badge-warning {
-    background-color: #fef3c7;
+    background-color: #fffbeb;
     color: #92400e;
-    border: 1px solid #fcd34d;
-    padding: 4px 12px;
+    border: 1px solid #fde68a;
+    padding: 3px 10px;
     border-radius: 20px;
-    font-weight: 700;
-    font-size: 0.85rem;
+    font-weight: 600;
+    font-size: 0.78rem;
     display: inline-block;
 }
 
 .badge-critical {
-    background-color: #fee2e2;
+    background-color: #fef2f2;
     color: #991b1b;
-    border: 1px solid #fca5a5;
-    padding: 4px 12px;
+    border: 1px solid #fecaca;
+    padding: 3px 10px;
     border-radius: 20px;
-    font-weight: 700;
-    font-size: 0.85rem;
+    font-weight: 600;
+    font-size: 0.78rem;
     display: inline-block;
 }
+
+/* ================================================================
+   STREAMLIT OVERRIDES — Tables, expanders, etc.
+   ================================================================ */
+.stDataFrame, .stTable {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+div[data-testid="stExpander"] {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+}
+
+div[data-testid="stExpander"] summary {
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+/* Button styling */
+.stButton > button {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    color: #374151 !important;
+    background: #ffffff !important;
+    padding: 8px 16px !important;
+    transition: all 0.15s ease !important;
+}
+
+.stButton > button:hover {
+    border-color: #9ca3af !important;
+    background: #f9fafb !important;
+}
+
+/* Streamlit markdown H3/H4 refinements */
+h3 { color: #111827 !important; font-weight: 700 !important; font-size: 1.1rem !important; }
+h4 { color: #374151 !important; font-weight: 600 !important; font-size: 0.95rem !important; }
+
 </style>
 """
 
@@ -255,26 +391,49 @@ def inject_glass_theme():
     """Inject clean light CSS into Streamlit."""
     st.markdown(GLASS_CSS, unsafe_allow_html=True)
 
-def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
-    """Returns ultra-clean HTML/CSS flexbox logo badge for WattWise Predictive Engine."""
+def render_topbar() -> str:
+    """Render the full top navigation bar HTML — logo left, status right."""
     return (
-        '<div style="display: flex; align-items: center; gap: 12px; font-family: \'Inter\', system-ui, sans-serif;">'
-        '<div style="width: 38px; height: 38px; background: linear-gradient(135deg, #0284c7, #10b981); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25); flex-shrink: 0;">'
-        '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+        '<div class="ww-topbar">'
+        # Left: Logo
+        '<div class="ww-topbar-logo">'
+        '<div class="ww-topbar-logo-icon">'
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
         '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>'
         '</svg>'
         '</div>'
-        '<div>'
-        '<div style="font-size: 1.45rem; font-weight: 800; color: #0f172a; line-height: 1.1; letter-spacing: -0.02em;">Watt<span style="color: #0284c7;">Wise</span></div>'
-        '<div style="font-size: 0.68rem; font-weight: 700; color: #64748b; letter-spacing: 0.08em; text-transform: uppercase;">Solar &amp; Wind Predictive Engine</div>'
+        '<span class="ww-topbar-brand">Watt<span>Wise</span></span>'
         '</div>'
+        # Right: Status pill
+        '<div class="ww-topbar-right">'
+        '<div class="ww-status-pill"><span class="ww-status-dot"></span>System Online</div>'
+        '</div>'
+        '</div>'
+    )
+
+def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
+    """Legacy compatibility — returns inline logo HTML."""
+    return (
+        '<div style="display:flex;align-items:center;gap:10px;">'
+        '<div style="width:32px;height:32px;background:linear-gradient(135deg,#0284c7,#10b981);border-radius:8px;display:flex;align-items:center;justify-content:center;">'
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+        '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>'
+        '</svg>'
+        '</div>'
+        '<span style="font-size:1.15rem;font-weight:800;color:#0f172a;letter-spacing:-0.02em;">Watt<span style="color:#0284c7;">Wise</span></span>'
         '</div>'
     )
 
 def render_glass_card(title: str, value: str, subtitle: str = "", icon: str = "", color: str = "#0f172a"):
     """Render a crisp HTML metric card."""
-    icon_html = f'<span style="font-size: 1.2rem;">{icon}</span>' if icon else ''
-    html = f"""<div class="glass-metric"><div style="display: flex; justify-content: space-between; align-items: center;"><span class="glass-metric-label">{title}</span>{icon_html}</div><div class="glass-metric-value" style="color: {color};">{value}</div><div class="glass-metric-sub">{subtitle}</div></div>"""
+    icon_html = f'<span style="font-size: 1.1rem;">{icon}</span>' if icon else ''
+    html = (
+        f'<div class="glass-metric">'
+        f'<div class="glass-metric-label">{title}</div>'
+        f'<div class="glass-metric-value" style="color: {color};">{value}</div>'
+        f'<div class="glass-metric-sub">{subtitle}</div>'
+        f'</div>'
+    )
     st.markdown(html, unsafe_allow_html=True)
 
 def apply_plotly_glass_layout(fig):
@@ -284,21 +443,21 @@ def apply_plotly_glass_layout(fig):
         plot_bgcolor='#ffffff',
         font=dict(family='Inter, sans-serif', color='#0f172a', size=13),
         xaxis=dict(
-            gridcolor='#e2e8f0',
-            zerolinecolor='#cbd5e1',
+            gridcolor='#f3f4f6',
+            zerolinecolor='#e5e7eb',
             showline=True,
-            linecolor='#94a3b8'
+            linecolor='#d1d5db'
         ),
         yaxis=dict(
-            gridcolor='#e2e8f0',
-            zerolinecolor='#cbd5e1',
+            gridcolor='#f3f4f6',
+            zerolinecolor='#e5e7eb',
             showline=True,
-            linecolor='#94a3b8'
+            linecolor='#d1d5db'
         ),
         margin=dict(l=20, r=20, t=40, b=20),
         legend=dict(
-            bgcolor='rgba(255,255,255,0.9)',
-            bordercolor='#cbd5e1',
+            bgcolor='rgba(255,255,255,0.95)',
+            bordercolor='#e5e7eb',
             borderwidth=1
         )
     )
