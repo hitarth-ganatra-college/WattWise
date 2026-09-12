@@ -104,22 +104,21 @@ div[data-baseweb="select"] * {
     color: #0f172a !important;
 }
 
-/* --- Navigation Tabs (Prominent Top Menu Bar) --- */
+/* --- Navigation Tabs (Unified Top Navbar) --- */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 8px !important;
-    background-color: #ffffff !important;
-    border-radius: 12px !important;
-    padding: 6px 12px !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
-    margin-bottom: 18px !important;
+    gap: 4px !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+    margin-bottom: 0 !important;
+    align-items: center !important;
 }
 
 button[data-baseweb="tab"] {
     background: transparent !important;
     border: 1px solid transparent !important;
-    border-radius: 8px !important;
-    padding: 10px 20px !important;
+    border-radius: 6px !important;
+    padding: 8px 14px !important;
     transition: all 0.2s ease-in-out !important;
 }
 
@@ -131,18 +130,19 @@ button[data-baseweb="tab"] p,
 button[data-baseweb="tab"] span {
     color: #475569 !important;
     font-weight: 600 !important;
-    font-size: 0.95rem !important;
+    font-size: 0.9rem !important;
 }
 
 button[aria-selected="true"] {
-    background-color: #f0f9ff !important;
-    border: 1px solid #bae6fd !important;
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
 }
 
 button[aria-selected="true"] p,
 button[aria-selected="true"] span {
     color: #0284c7 !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
 }
 
 /* --- Metric Box --- */
@@ -217,11 +217,12 @@ def inject_glass_theme():
     """Inject clean light CSS into Streamlit."""
     st.markdown(GLASS_CSS, unsafe_allow_html=True)
 
+import base64
+
 def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
-    """Returns SVG vector logo for WattWise Predictive Engine without markdown code block indentation."""
-    svg_str = (
-        f'<div style="display: inline-flex; align-items: center; gap: 12px; vertical-align: middle;">'
-        f'<svg width="{width}" height="{height}" viewBox="0 0 240 42" fill="none" xmlns="http://www.w3.org/2000/svg">'
+    """Returns Base64 encoded SVG vector logo img tag for WattWise Predictive Engine."""
+    raw_svg = (
+        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" fill="none" xmlns="http://www.w3.org/2000/svg">'
         f'<defs>'
         f'<linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">'
         f'<stop offset="0%" stop-color="#0284c7" />'
@@ -232,12 +233,12 @@ def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
         f'<path d="M22 9L15 22H21L19 33L28 19H22L24 9Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="1.2" stroke-linejoin="round"/>'
         f'<circle cx="31" cy="11" r="2.5" fill="#38bdf8"/>'
         f'<circle cx="11" cy="31" r="2" fill="#34d399"/>'
-        f'<text x="50" y="25" font-family="\'Inter\', system-ui, sans-serif" font-weight="800" font-size="22" fill="#0f172a" letter-spacing="-0.5">Watt<tspan fill="#0284c7">Wise</tspan></text>'
-        f'<text x="50" y="36" font-family="\'Inter\', system-ui, sans-serif" font-weight="600" font-size="8.5" fill="#64748b" letter-spacing="0.8">SOLAR &amp; WIND PREDICTIVE ENGINE</text>'
+        f'<text x="50" y="25" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="800" font-size="22" fill="#0f172a" letter-spacing="-0.5">Watt<tspan fill="#0284c7">Wise</tspan></text>'
+        f'<text x="50" y="37" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="600" font-size="8.5" fill="#64748b" letter-spacing="0.8">SOLAR &amp; WIND PREDICTIVE ENGINE</text>'
         f'</svg>'
-        f'</div>'
     )
-    return svg_str
+    b64_svg = base64.b64encode(raw_svg.encode("utf-8")).decode("utf-8")
+    return f'<img src="data:image/svg+xml;base64,{b64_svg}" height="{height}" style="vertical-align: middle; display: inline-block;" alt="WattWise Logo"/>'
 
 def render_glass_card(title: str, value: str, subtitle: str = "", icon: str = "", color: str = "#0f172a"):
     """Render a crisp HTML metric card."""

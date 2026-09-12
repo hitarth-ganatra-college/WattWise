@@ -166,7 +166,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 
 
 def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0, panel_temp: float = 45.0, health_status: str = "Healthy", height: int = 420):
-    """Render a realistic 3D Photovoltaic Solar Array with realistic silicon blue cells, aluminum borders, steel mounts, grass floor, and natural sky."""
+    """Render a realistic 3D Photovoltaic Solar Array with dynamic cell textures, aluminum borders, steel mounts, grass floor, and natural sky."""
     
     dust_opacity = max(0.0, min(0.65, (1.0 - soiling_factor) * 2.2))
 
@@ -225,7 +225,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        // Ground Floor - Natural Grass with Dirt Patches
+        // Ground Floor - Natural Grass with Dirt Bed underneath
         const grassGeo = new THREE.PlaneGeometry(50, 50);
         const grassMat = new THREE.MeshStandardMaterial({{ color: 0x4d7c0f, roughness: 0.95 }});
         const grass = new THREE.Mesh(grassGeo, grassMat);
@@ -241,52 +241,107 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         dirtBed.receiveShadow = true;
         scene.add(dirtBed);
 
+        // Dynamic Canvas Texture Generator for Photorealistic Silicon Solar Cells
+        function createSolarTexture() {{
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // Deep Blue Silicon Base
+            ctx.fillStyle = '#0a192f';
+            ctx.fillRect(0, 0, 512, 512);
+
+            // Cell divisions (6x10 grid per module)
+            ctx.strokeStyle = '#1e3a8a';
+            ctx.lineWidth = 3;
+            const cellW = 512 / 6;
+            const cellH = 512 / 10;
+            for (let x = 0; x <= 6; x++) {{
+                ctx.beginPath();
+                ctx.moveTo(x * cellW, 0);
+                ctx.lineTo(x * cellW, 512);
+                ctx.stroke();
+            }}
+            for (let y = 0; y <= 10; y++) {{
+                ctx.beginPath();
+                ctx.moveTo(0, y * cellH);
+                ctx.lineTo(512, y * cellH);
+                ctx.stroke();
+            }}
+
+            // Silver Busbars (Main electrical collector lines)
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 5;
+            for (let b of [128, 256, 384]) {{
+                ctx.beginPath();
+                ctx.moveTo(0, b);
+                ctx.lineTo(512, b);
+                ctx.stroke();
+            }}
+
+            // Fine Grid Collector Fingers
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 1;
+            for (let f = 0; f < 512; f += 12) {{
+                ctx.beginPath();
+                ctx.moveTo(f, 0);
+                ctx.lineTo(f, 512);
+                ctx.stroke();
+            }}
+
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }}
+
+        const solarTexture = createSolarTexture();
+
         // Galvanized Steel Support Legs & Racking Frame
         const legMat = new THREE.MeshStandardMaterial({{ color: 0x64748b, metalness: 0.85, roughness: 0.3 }});
         
         for (let x of [-4.5, 0, 4.5]) {{
-            // Front leg (shorter)
-            const legFront = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.5, 16), legMat);
-            legFront.position.set(x, 0.75, 1.5);
+            // Front leg
+            const legFront = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 16), legMat);
+            legFront.position.set(x, 0.7, 1.2);
             legFront.castShadow = true;
             scene.add(legFront);
 
-            // Rear leg (taller for tilt)
-            const legRear = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.2, 16), legMat);
-            legRear.position.set(x, 1.6, -1.5);
+            // Rear leg
+            const legRear = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.8, 16), legMat);
+            legRear.position.set(x, 1.4, -1.2);
             legRear.castShadow = true;
             scene.add(legRear);
         }}
 
         // Main Solar Array Rack Group (Tilted at 25 degrees)
         const arrayGroup = new THREE.Group();
-        arrayGroup.position.set(0, 2.1, 0);
+        arrayGroup.position.set(0, 2.0, 0);
         arrayGroup.rotation.x = Math.PI / 7; // 25° Optimal Solar Tilt
         scene.add(arrayGroup);
 
-        // Heavy Duty Aluminum Rack Support Beams
+        // Aluminum Rack Support Rails
         const railMat = new THREE.MeshStandardMaterial({{ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 }});
-        for (let z of [-1.8, 0, 1.8]) {{
-            const rail = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.1, 0.12), railMat);
-            rail.position.set(0, -0.1, z);
+        for (let z of [-1.5, 0, 1.5]) {{
+            const rail = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.08, 0.1), railMat);
+            rail.position.set(0, -0.06, z);
             arrayGroup.add(rail);
         }}
 
-        // REALISTIC SOLAR PANELS GRID (4x2 Modules Array)
+        // REALISTIC SOLAR MODULES (4x2 Array)
         const panelWidth = 2.6;
         const panelHeight = 2.2;
         const rows = 2;
         const cols = 4;
 
-        // Dark Blue Silicon Cell Material (Glossy Reflective Glass Finish)
+        // Photovoltaic Silicon Cell Surface Material
         const pvCellMat = new THREE.MeshStandardMaterial({{
-            color: 0x0a192f,
-            roughness: 0.1,
-            metalness: 0.85
+            map: solarTexture,
+            roughness: 0.15,
+            metalness: 0.75
         }});
 
         // Silver Aluminum Frame Border Material
-        const frameMat = new THREE.MeshStandardMaterial({{ color: 0xcbd5e1, metalness: 0.95, roughness: 0.15 }});
+        const frameMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, metalness: 0.95, roughness: 0.15 }});
 
         for (let r = 0; r < rows; r++) {{
             for (let c = 0; c < cols; c++) {{
@@ -296,20 +351,15 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 const singlePanelGroup = new THREE.Group();
                 singlePanelGroup.position.set(xPos, 0, zPos);
 
-                // Aluminum Outer Frame
+                // Aluminum Outer Border Frame
                 const frameMesh = new THREE.Mesh(new THREE.BoxGeometry(panelWidth, 0.06, panelHeight), frameMat);
                 frameMesh.castShadow = true;
                 singlePanelGroup.add(frameMesh);
 
-                // Silicon Photovoltaic Glass Surface
+                // Silicon PV Cell Surface Mesh
                 const pvSurface = new THREE.Mesh(new THREE.BoxGeometry(panelWidth - 0.08, 0.07, panelHeight - 0.08), pvCellMat);
                 pvSurface.position.y = 0.01;
                 singlePanelGroup.add(pvSurface);
-
-                // Solar Cell Division Grid Overlay (Silver busbars)
-                const gridHelper = new THREE.GridHelper(panelWidth - 0.1, 6, 0x38bdf8, 0x1e3a8a);
-                gridHelper.position.y = 0.05;
-                singlePanelGroup.add(gridHelper);
 
                 // Soiling / Dust Layer (if dirty)
                 if ({dust_opacity} > 0.05) {{
@@ -329,7 +379,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             }}
         }}
 
-        // Animation Loop - Gentle Orbit Showcase
+        // Animation Loop - Slow Showcase Orbit
         function animate() {{
             requestAnimationFrame(animate);
             arrayGroup.rotation.y += 0.0015;

@@ -38,15 +38,6 @@ st.set_page_config(
 # Inject Light Design System
 inject_glass_theme()
 
-# ─── Top Brand Header Bar ─────────────────────────────────────
-st.markdown(
-    f'<div class="wattwise-header-bar">'
-    f'<div>{render_wattwise_logo(height=44, width=250)}</div>'
-    f'<div class="wattwise-status-pill"><span class="status-dot-green"></span><span><b>System Online</b> | SCADA Stream 2s</span></div>'
-    f'</div>',
-    unsafe_allow_html=True
-)
-
 # ─── DB Connection ────────────────────────────────────────────
 @st.cache_resource
 def get_db():
@@ -205,8 +196,40 @@ def generate_work_order_pdf(asset_row):
 
 REGIONS = list(config.REGIONAL_MODIFIERS.keys())
 
+# ─── Data Filtering Logic Setup ───────────────────────────────
+if "toolbar_asset_type" not in st.session_state:
+    st.session_state["toolbar_asset_type"] = "All"
+if "toolbar_region" not in st.session_state:
+    st.session_state["toolbar_region"] = "All"
+
+asset_type_filter = st.session_state.get("toolbar_asset_type", "All")
+region_filter = st.session_state.get("toolbar_region", "All")
+
+# ─── Top Executive Brand Header Bar ───────────────────────────
+head_col1, head_col2 = st.columns([3, 1])
+with head_col1:
+    st.markdown(render_wattwise_logo(height=44, width=250), unsafe_allow_html=True)
+with head_col2:
+    st.markdown(
+        '<div style="display:flex; justify-content:flex-end; align-items:center; height:100%;">'
+        '<div class="wattwise-status-pill"><span class="status-dot-green"></span><span><b>System Online</b> | SCADA Stream 2s</span></div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+
+# ─── Primary Navigation Menu Bar (Full Width Top Ribbon) ────────
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Fleet Overview",
+    "Asset Deep Dive",
+    "Maintenance Queue",
+    "Financial Impact",
+    "Asset Manager",
+    "Command Center"
+])
+
 # ─── Linear Horizontal Filter Toolbar ──────────────────────────
-st.markdown("<div class='linear-filter-bar'>", unsafe_allow_html=True)
 tf_col1, tf_col2, tf_col3, tf_col4 = st.columns([2.5, 2.5, 2.5, 2.5])
 
 with tf_col1:
@@ -221,14 +244,13 @@ with tf_col3:
         refresh_interval = st.slider("Refresh Interval (s)", 3, 30, 6, key="toolbar_interval")
 
 with tf_col4:
-    st.markdown("""
-    <div style="font-size:0.8rem; color:#475569; padding-top:4px;">
-        <div><b>Telemetry Status:</b> Live SCADA Stream</div>
-        <div style="color:#0284c7; font-weight:600;">DB: mongodb://localhost:27017</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div style="font-size:0.8rem; color:#475569; padding-top:4px;">'
+        '<div><b>Telemetry Status:</b> Live SCADA Stream</div>'
+        '<div style="color:#0284c7; font-weight:600;">DB: mongodb://localhost:27017</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 # ─── Helpers ──────────────────────────────────────────────────
 hc = AssetHealthCalculator()
@@ -321,24 +343,6 @@ processed = process_assets(filtered_assets, latest_tel) if latest_tel else []
 df_assets = pd.DataFrame(processed) if processed else pd.DataFrame()
 if not df_assets.empty:
     df_assets = df_assets.sort_values(by='priority_score', ascending=False)
-
-# ─── Header ─────────────────────────────────────────────
-st.markdown("""
-<div style="margin-bottom: 24px;">
-    <h1 style="color: #0f172a; font-weight: 700; margin-bottom: 4px;">Predictive Maintenance Dashboard</h1>
-    <p style="color: #64748b; font-size: 1.05rem;">Real-time AI telemetry, ML thermal residuals, and financial risk prioritization.</p>
-</div>
-""", unsafe_allow_html=True)
-
-# ─── Primary Navigation Menu Bar ──────────────────────────────
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Fleet Overview",
-    "Asset Deep Dive",
-    "Maintenance Queue",
-    "Financial Impact",
-    "Asset Manager",
-    "Command Center"
-])
 
 # ── Tab 1: Fleet Overview ────────────────────────────────────
 with tab1:
