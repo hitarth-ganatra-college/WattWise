@@ -375,10 +375,9 @@ with tab1:
         
         map_col1, map_col2 = st.columns([3, 1])
         with map_col2:
-            st.markdown("<div style='background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;'>", unsafe_allow_html=True)
-            st.markdown("<b style='color:#0f172a;'>Map Controls & Legend</b>", unsafe_allow_html=True)
+            st.markdown("<b style='color:#0f172a; font-size:1.05rem;'>Map Controls & Legend</b>", unsafe_allow_html=True)
             focus_asset = st.selectbox(
-                "Focus Map & 3D Inspector",
+                "FOCUS MAP & 3D INSPECTOR",
                 ["All Assets"] + df_assets['asset_id'].tolist(),
                 key="map_focus_asset"
             )
@@ -389,7 +388,7 @@ with tab1:
                 key="map_proj_choice"
             )
             st.markdown("""
-            <div style='margin-top:10px; font-size:0.78rem; color:#475569; line-height:1.4;'>
+            <div style='margin-top:12px; font-size:0.82rem; color:#475569; line-height:1.5; background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid #e2e8f0;'>
                 <b>Asset Marker Symbols:</b><br/>
                 &#9650; <b>Triangles</b> = Wind Turbines<br/>
                 &#9632; <b>Squares / Dots</b> = Solar Panels<br/><br/>
@@ -399,7 +398,6 @@ with tab1:
                 <span style='color:#ef4444; font-weight:bold;'>&#9632; Red</span> = Critical / Failure (&lt;50 AHI)
             </div>
             """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
 
         with map_col1:
             color_map = {
