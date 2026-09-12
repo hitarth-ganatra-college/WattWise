@@ -526,7 +526,7 @@ with tab1:
             if atype == 'wind_turbine':
                 rpm_val = latest_doc.get('generator_rpm') or 1500.0
                 gb_temp = latest_doc.get('gearbox_bearing_temp') or 60.0
-                render_3d_wind_turbine(rpm=rpm_val, gearbox_temp=gb_temp, health_status=status_val, height=400)
+                render_3d_wind_turbine(rpm=rpm_val, gearbox_temp=gb_temp, health_status=status_val, height=460)
             else:
                 soiling_val = latest_doc.get('soiling_factor') or 1.0
                 irradiance_val = latest_doc.get('solar_irradiance') or 850.0

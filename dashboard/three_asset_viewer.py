@@ -94,7 +94,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         scene.fog = new THREE.FogExp2(0xdbeafe, 0.015);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 9, 24);
+        camera.position.set(0, 9.5, 29);
 
         const renderer = new THREE.WebGLRenderer({{ antialias: true }});
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -104,7 +104,9 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
+        controls.target.set(0, 8.5, 0);
         controls.maxPolarAngle = Math.PI / 2 - 0.02;
+        controls.update();
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
