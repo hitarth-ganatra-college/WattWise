@@ -24,20 +24,40 @@ html, body, [class*="css"] {
     background-color: #fafafa !important;
 }
 
-/* --- Tighter page padding so navbar spans full width --- */
+/* --- Kill Streamlit default chrome UI, toolbars, menus, and status badges --- */
+#MainMenu, footer, header, 
+[data-testid="stHeader"], 
+[data-testid="stToolbar"], 
+[data-testid="stDecoration"], 
+[data-testid="stStatusWidget"],
+[data-testid="stSidebarNav"],
+.viewerBadge_container__1S-5D,
+button[title="View fullscreen"],
+.stActionButton,
+div[class*="stActionButton"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Remove transforms from Streamlit ancestors so position:fixed works */
+.stApp, .main, .main > div, section[data-testid="stMain"],
+section[data-testid="stMainBlockContainer"], .block-container {
+    transform: none !important;
+    will-change: auto !important;
+    contain: none !important;
+}
+
+/* --- Main content area --- */
 .main .block-container {
-    padding-top: 0rem !important;
+    padding-top: 60px !important;
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
     max-width: 100% !important;
-}
-
-/* Hide Streamlit default header/toolbar chrome */
-header[data-testid="stHeader"] {
-    background: transparent !important;
-    height: 0px !important;
-    min-height: 0px !important;
 }
 
 /* --- Sidebar: Force collapse --- */
@@ -46,7 +66,7 @@ section[data-testid="stSidebar"] {
 }
 
 /* ================================================================
-   NAVBAR — Single-row bar: logo left, status right
+   NAVBAR — Truly fixed to viewport top
    ================================================================ */
 .ww-topbar {
     display: flex;
@@ -54,13 +74,14 @@ section[data-testid="stSidebar"] {
     justify-content: space-between;
     background: #ffffff;
     border-bottom: 1px solid #e5e7eb;
-    padding: 10px 28px;
-    margin: 0 -2rem;
-    margin-top: -1rem;
-    margin-bottom: 0;
-    position: sticky;
+    padding: 0 32px;
+    position: fixed;
     top: 0;
-    z-index: 999;
+    left: 0;
+    right: 0;
+    z-index: 999999;
+    height: 48px;
+    box-sizing: border-box;
 }
 
 .ww-topbar-logo {
