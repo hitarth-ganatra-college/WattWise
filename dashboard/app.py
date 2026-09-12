@@ -197,7 +197,7 @@ def generate_work_order_pdf(asset_row):
 REGIONS = list(config.REGIONAL_MODIFIERS.keys())
 
 # ─── Sidebar ──────────────────────────────────────────────────
-st.sidebar.markdown("<h2 style='color:#0284c7; font-weight:700; margin-bottom:0;'>Renewables PdM</h2>", unsafe_allow_html=True)
+st.sidebar.markdown("<h2 style='color:#0284c7; font-weight:700; margin-bottom:0;'>WattWise</h2>", unsafe_allow_html=True)
 st.sidebar.markdown("<p style='color:#64748b; font-size:0.85rem;'>Solar & Wind Predictive Engine</p>", unsafe_allow_html=True)
 st.sidebar.divider()
 
@@ -284,6 +284,8 @@ def process_assets(assets, telemetry_docs):
             badge = '<span class="badge-critical">Critical</span>'
             
         rec['status_badge'] = badge
+        rec['asset_type_label'] = 'Wind Turbine' if atype == 'wind_turbine' else 'Solar Panel'
+        rec['asset_health_category'] = f"{rec['asset_type_label']} - {rec['health_status']}"
         processed.append(rec)
 
     return processed
@@ -355,7 +357,7 @@ with tab1:
         map_col1, map_col2 = st.columns([3, 1])
         with map_col2:
             st.markdown("<div style='background: #f1f5f9; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1;'>", unsafe_allow_html=True)
-            st.markdown("<b style='color:#0f172a;'>Map Controls</b>", unsafe_allow_html=True)
+            st.markdown("<b style='color:#0f172a;'>Map Controls & Legend</b>", unsafe_allow_html=True)
             focus_asset = st.selectbox(
                 "Focus Map & 3D Inspector",
                 ["All Assets"] + df_assets['asset_id'].tolist(),
@@ -367,10 +369,31 @@ with tab1:
                 index=0,
                 key="map_proj_choice"
             )
-            st.markdown("<p style='font-size:0.75rem; color:#64748b; margin-top:6px;'>Legend: Red = Critical | Yellow = Warning | Green = Healthy</p>", unsafe_allow_html=True)
+            st.markdown("""
+            <div style='margin-top:10px; font-size:0.78rem; color:#475569; line-height:1.4;'>
+                <b>Asset Marker Symbols:</b><br/>
+                &#9650; <b>Triangles</b> = Wind Turbines<br/>
+                &#9632; <b>Squares / Dots</b> = Solar Panels<br/><br/>
+                <b>Health Status Colors:</b><br/>
+                <span style='color:#10b981; font-weight:bold;'>&#9632; Green</span> = Healthy (&ge;80 AHI)<br/>
+                <span style='color:#f59e0b; font-weight:bold;'>&#9632; Yellow</span> = Warning (50-79 AHI)<br/>
+                <span style='color:#ef4444; font-weight:bold;'>&#9632; Red</span> = Critical / Failure (&lt;50 AHI)
+            </div>
+            """, unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
         with map_col1:
+            color_map = {
+                'Wind Turbine - Healthy': '#10b981',
+                'Wind Turbine - Warning': '#f59e0b',
+                'Wind Turbine - Critical': '#ef4444',
+                'Wind Turbine - Failure Imminent': '#991b1b',
+                'Solar Panel - Healthy': '#06b6d4',
+                'Solar Panel - Warning': '#f97316',
+                'Solar Panel - Critical': '#dc2626',
+                'Solar Panel - Failure Imminent': '#7f1d1d'
+            }
+
             if proj_choice == "Google Earth Satellite View":
                 center_dict = dict(lat=20.0, lon=0.0)
                 zoom_val = 1.2
@@ -387,20 +410,20 @@ with tab1:
                     lon='lon',
                     hover_name='asset_id',
                     hover_data={
-                        'asset_type': True,
+                        'asset_type_label': True,
+                        'health_status': True,
+                        'ahi': ':.1f',
                         'region': True,
                         'oem': True,
-                        'ahi': ':.1f',
-                        'health_status': True,
                         'lat': ':.4f',
                         'lon': ':.4f'
                     },
-                    color='health_status',
-                    color_discrete_map={'Healthy': '#10b981', 'Warning': '#f59e0b', 'Critical': '#ef4444', 'Failure Imminent': '#991b1b'},
+                    color='asset_health_category',
+                    color_discrete_map=color_map,
                     size_max=18,
                     zoom=zoom_val,
                     center=center_dict,
-                    title="Google Earth Photorealistic Satellite View"
+                    title="Google Earth Satellite View (Divided by Asset Type & Health)"
                 )
 
                 style_key = "map_style" if hasattr(px, 'scatter_map') else "mapbox_style"
@@ -429,21 +452,21 @@ with tab1:
                     lon='lon',
                     hover_name='asset_id',
                     hover_data={
-                        'asset_type': True,
+                        'asset_type_label': True,
+                        'health_status': True,
+                        'ahi': ':.1f',
                         'region': True,
                         'oem': True,
-                        'ahi': ':.1f',
-                        'health_status': True,
                         'lat': ':.4f',
                         'lon': ':.4f'
                     },
-                    color='health_status',
-                    symbol='asset_type',
-                    symbol_map={'wind_turbine': 'triangle-up', 'solar_panel': 'circle'},
-                    color_discrete_map={'Healthy': '#10b981', 'Warning': '#f59e0b', 'Critical': '#ef4444', 'Failure Imminent': '#991b1b'},
+                    color='asset_health_category',
+                    symbol='asset_type_label',
+                    symbol_map={'Wind Turbine': 'triangle-up', 'Solar Panel': 'square'},
+                    color_discrete_map=color_map,
                     size_max=18,
                     projection=proj,
-                    title="Fleet Global Status Map"
+                    title="3D Globe Fleet View (Triangles = Wind, Squares = Solar)"
                 )
                 
                 geo_config = dict(

@@ -63,7 +63,7 @@ class EmailNotifier:
         <!-- Header -->
         <tr>
             <td style="background-color: #0f172a; padding: 24px 32px; text-align: left;">
-                <h1 style="color: #0284c7; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">RENEWABLES PDM DISPATCH SYSTEM</h1>
+                <h1 style="color: #0284c7; margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">WattWise DISPATCH SYSTEM</h1>
                 <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 13px;">Automated Telemetry Diagnostic Alert & Service Order</p>
             </td>
         </tr>
