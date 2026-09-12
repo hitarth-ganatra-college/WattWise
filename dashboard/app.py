@@ -561,6 +561,16 @@ with tab2:
                     fig_ahi = px.area(df_h, x='timestamp', y='ahi', title='Asset Health Index (AHI) Trend', range_y=[0, 105])
                     fig_ahi.add_hline(y=50, line_dash="dash", line_color="#f59e0b", annotation_text="Warning (50 AHI)")
                     fig_ahi.add_hline(y=20, line_dash="dash", line_color="#ef4444", annotation_text="Critical (20 AHI)")
+                    
+                    # Fetch repair history to mark repair events on chart
+                    db = get_db()
+                    col_repair = getattr(config, 'COLLECTION_REPAIR_HISTORY', 'repair_history')
+                    repairs = list(db[col_repair].find({'asset_id': selected}))
+                    for rep in repairs:
+                        rep_time = rep.get('repaired_at')
+                        if rep_time:
+                            fig_ahi.add_vline(x=rep_time, line_dash="dot", line_color="#10b981", annotation_text="Technician Repair")
+
                     apply_plotly_glass_layout(fig_ahi)
                     st.plotly_chart(fig_ahi, use_container_width=True)
 
@@ -660,42 +670,46 @@ with tab3:
         
         with c_wo:
             st.markdown("### Export Technician Work Order")
-            selected_wo_asset = st.selectbox("Select Asset for Work Order Ticket", df_assets['asset_id'].tolist(), key="wo_select")
-            if selected_wo_asset:
-                asset_row = df_assets[df_assets['asset_id'] == selected_wo_asset].iloc[0]
-                
-                # Calculate financial savings figure
-                lead_days = asset_row.get('lead_time_days', 30)
-                daily_loss = asset_row.get('estimated_daily_revenue_loss', 0)
-                repair_cost = asset_row.get('estimated_repair_cost', 5000)
-                ahi = asset_row.get('ahi', 100)
-                
-                catastrophic_loss_avoided = (daily_loss * lead_days) + (config.EMERGENCY_REPLACEMENT_COST if ahi < 50 else config.PREVENTIVE_MAINTENANCE_COST * 2)
-                net_savings = max(0.0, catastrophic_loss_avoided - repair_cost)
-
-                with st.expander(f"View Ticket: {selected_wo_asset}", expanded=True):
-                    ticket_html = f"""
-                    <div style="background:#ffffff; border:2px solid #0f172a; padding:20px; border-radius:12px; color:#0f172a;">
-                        <h3 style="margin:0 0 10px 0; color:#0284c7;">WORK ORDER #{selected_wo_asset}-WO</h3>
-                        <p style="margin:4px 0;"><b>Equipment:</b> {asset_row['asset_id']} ({asset_row['oem']})</p>
-                        <p style="margin:4px 0;"><b>Primary Fault:</b> <span style="color:#b91c1c; font-weight:700;">{asset_row['top_issue']}</span></p>
-                        <p style="margin:4px 0;"><b>Parts Lead Time:</b> {lead_days} Days</p>
-                        <p style="margin:4px 0;"><b>Estimated Servicing Cost:</b> ${repair_cost:,.2f}</p>
-                        <p style="margin:4px 0;"><b>Estimated Financial Savings (ROI):</b> <span style="color:#166534; font-weight:800; font-size:1.05rem;">${net_savings:,.2f}</span></p>
-                        <p style="margin:4px 0;"><b>Recommended Action:</b> {asset_row['recommended_action']}</p>
-                    </div>
-                    """
-                    st.markdown(ticket_html, unsafe_allow_html=True)
+            degraded_wo_assets = df_assets[df_assets['ahi'] < 95]['asset_id'].tolist()
+            if not degraded_wo_assets:
+                st.info("No active work orders required. All fleet assets are healthy!")
+            else:
+                selected_wo_asset = st.selectbox("Select Asset for Work Order Ticket", degraded_wo_assets, key="wo_select")
+                if selected_wo_asset:
+                    asset_row = df_assets[df_assets['asset_id'] == selected_wo_asset].iloc[0]
                     
-                    # Generate PDF bytes
-                    pdf_data = generate_work_order_pdf(asset_row)
-                    st.download_button(
-                        label="Download Work Order (PDF)",
-                        data=pdf_data,
-                        file_name=f"Work_Order_{selected_wo_asset}.pdf",
-                        mime="application/pdf",
-                        key=f"dl_pdf_{selected_wo_asset}"
-                    )
+                    # Calculate financial savings figure
+                    lead_days = asset_row.get('lead_time_days', 30)
+                    daily_loss = asset_row.get('estimated_daily_revenue_loss', 0)
+                    repair_cost = asset_row.get('estimated_repair_cost', 5000)
+                    ahi = asset_row.get('ahi', 100)
+                    
+                    catastrophic_loss_avoided = (daily_loss * lead_days) + (config.EMERGENCY_REPLACEMENT_COST if ahi < 50 else config.PREVENTIVE_MAINTENANCE_COST * 2)
+                    net_savings = max(0.0, catastrophic_loss_avoided - repair_cost)
+
+                    with st.expander(f"View Ticket: {selected_wo_asset}", expanded=True):
+                        ticket_html = f"""
+                        <div style="background:#ffffff; border:2px solid #0f172a; padding:20px; border-radius:12px; color:#0f172a;">
+                            <h3 style="margin:0 0 10px 0; color:#0284c7;">WORK ORDER #{selected_wo_asset}-WO</h3>
+                            <p style="margin:4px 0;"><b>Equipment:</b> {asset_row['asset_id']} ({asset_row['oem']})</p>
+                            <p style="margin:4px 0;"><b>Primary Fault:</b> <span style="color:#b91c1c; font-weight:700;">{asset_row['top_issue']}</span></p>
+                            <p style="margin:4px 0;"><b>Parts Lead Time:</b> {lead_days} Days</p>
+                            <p style="margin:4px 0;"><b>Estimated Servicing Cost:</b> ${repair_cost:,.2f}</p>
+                            <p style="margin:4px 0;"><b>Estimated Financial Savings (ROI):</b> <span style="color:#166534; font-weight:800; font-size:1.05rem;">${net_savings:,.2f}</span></p>
+                            <p style="margin:4px 0;"><b>Recommended Action:</b> {asset_row['recommended_action']}</p>
+                        </div>
+                        """
+                        st.markdown(ticket_html, unsafe_allow_html=True)
+                        
+                        # Generate PDF bytes
+                        pdf_data = generate_work_order_pdf(asset_row)
+                        st.download_button(
+                            label="Download Work Order (PDF)",
+                            data=pdf_data,
+                            file_name=f"Work_Order_{selected_wo_asset}.pdf",
+                            mime="application/pdf",
+                            key=f"dl_pdf_{selected_wo_asset}"
+                        )
 
         with c_rep:
             st.markdown("### Perform Technician Repair")
@@ -725,11 +739,16 @@ with tab3:
                     }
                     db[config.COLLECTION_COMMANDS].insert_one(cmd)
 
-                    # 2. Heals asset in MongoDB live telemetry & anomaly scores
-                    db[config.COLLECTION_TELEMETRY].update_many(
+                    # 2. Heals ONLY the latest telemetry document for instant responsiveness, keeping historical records intact!
+                    latest_doc = db[config.COLLECTION_TELEMETRY].find_one(
                         {'asset_id': repair_target},
-                        {'$set': {'anomaly_scores': {}, 'status_type_id': 0, 'has_diode_fault': False, 'soiling_factor': 1.0}}
+                        sort=[('timestamp', -1)]
                     )
+                    if latest_doc:
+                        db[config.COLLECTION_TELEMETRY].update_one(
+                            {'_id': latest_doc['_id']},
+                            {'$set': {'anomaly_scores': {}, 'status_type_id': 0, 'has_diode_fault': False, 'soiling_factor': 1.0}}
+                        )
 
                     # 3. Insert Permanent Repair History Record into MongoDB
                     repair_record = {
@@ -747,6 +766,12 @@ with tab3:
                     }
                     col_repair = getattr(config, 'COLLECTION_REPAIR_HISTORY', 'repair_history')
                     db[col_repair].insert_one(repair_record)
+
+                    # Reset session state selections for repaired asset
+                    if "wo_select" in st.session_state and st.session_state["wo_select"] == repair_target:
+                        del st.session_state["wo_select"]
+                    if "repair_select" in st.session_state and st.session_state["repair_select"] == repair_target:
+                        del st.session_state["repair_select"]
 
                     st.success(f"Maintenance completed on **{repair_target}**! Repair logged to MongoDB fix history. Health restored to 100% (Saved ${net_savings:,.2f}).")
                     st.cache_data.clear()
