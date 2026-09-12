@@ -1,0 +1,9 @@
+pymongo
+pandas
+numpy
+scikit-learn
+joblib
+streamlit
+plotly
+python-dotenv
+reportlab
