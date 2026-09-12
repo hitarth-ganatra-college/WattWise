@@ -9,11 +9,12 @@ Renders rotatable, real-time 3D models using Three.js inside Streamlit component
 import streamlit as st
 import streamlit.components.v1 as components
 
-def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health_status: str = "Healthy", height: int = 420):
-    """Render a realistic 3D Wind Turbine model with natural grass floor, dirt, cloudy sky, and rotatable blades."""
+def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health_status: str = "Healthy", height: int = 440):
+    """Render a realistic 3D Wind Turbine model with natural environment and 3D screen-projected component labels."""
     
     speed_factor = max(0.01, min(0.35, (rpm / 1800.0) * 0.18)) if rpm > 0 else 0.002
     gearbox_color = "0xef4444" if gearbox_temp > 80 else ("0xf59e0b" if gearbox_temp > 65 else "0xe2e8f0")
+    badge_color = "#ef4444" if gearbox_temp > 80 else ("#f59e0b" if gearbox_temp > 65 else "#10b981")
 
     html_code = f"""<!DOCTYPE html>
 <html>
@@ -23,9 +24,22 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
         #info {{
             position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 12px;
-            background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
             padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10;
+        }}
+        .annotation {{
+            position: absolute; pointer-events: none; transform: translate(-50%, -100%);
+            background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;
+            padding: 5px 9px; border-radius: 6px; font-size: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
+        }}
+        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 11px; margin-bottom: 2px; }}
+        .annotation-dot {{
+            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 7px; height: 7px; background: #38bdf8; border-radius: 50%;
+            box-shadow: 0 0 8px #38bdf8;
         }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -36,12 +50,37 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         <b style="color:#0f172a; font-size:13px;">3D INDUSTRIAL WIND TURBINE</b><br>
         Generator Speed: <b>{rpm:.1f} RPM</b><br>
         Gearbox Temp: <b>{gearbox_temp:.1f} °C</b><br>
-        Health Status: <b>{health_status}</b><br>
+        Health Status: <b style="color:{badge_color};">{health_status}</b><br>
         <span style="color:#64748b; font-size:10px;">Drag to rotate | Scroll to zoom</span>
     </div>
+
+    <!-- Dynamic 3D Component Callout Overlay Badges -->
+    <div id="anno-nacelle" class="annotation">
+        <div class="annotation-title">GEARBOX & GENERATOR HOUSING</div>
+        <div>Temp: <b style="color:{badge_color};">{gearbox_temp:.1f} °C</b></div>
+        <div class="annotation-dot" style="background:{badge_color}; box-shadow: 0 0 8px {badge_color};"></div>
+    </div>
+
+    <div id="anno-rotor" class="annotation">
+        <div class="annotation-title">AERODYNAMIC ROTOR & BLADES</div>
+        <div>Rotor Speed: <b>{rpm:.1f} RPM</b></div>
+        <div class="annotation-dot"></div>
+    </div>
+
+    <div id="anno-tower" class="annotation">
+        <div class="annotation-title">STEEL SUPPORT TOWER</div>
+        <div>13m Tapered Tubular Steel</div>
+        <div class="annotation-dot"></div>
+    </div>
+
+    <div id="anno-base" class="annotation">
+        <div class="annotation-title">FOUNDATION BASE</div>
+        <div>Concrete Anchor Pad</div>
+        <div class="annotation-dot"></div>
+    </div>
+
     <script>
         const scene = new THREE.Scene();
-        // Natural Cloudy Sky background gradient & fog
         scene.background = new THREE.Color(0xdbeafe);
         scene.fog = new THREE.FogExp2(0xdbeafe, 0.015);
 
@@ -56,9 +95,9 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
 
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.maxPolarAngle = Math.PI / 2 - 0.02; // Don't clip through ground
+        controls.maxPolarAngle = Math.PI / 2 - 0.02;
 
-        // Natural Sunlight & Ambient Environment
+        // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
         scene.add(ambientLight);
 
@@ -69,7 +108,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        // Ground Floor - Natural Green Grass with Dirt Sub-layer
+        // Ground Floor
         const grassGeo = new THREE.PlaneGeometry(60, 60);
         const grassMat = new THREE.MeshStandardMaterial({{ color: 0x4d7c0f, roughness: 0.9 }});
         const grass = new THREE.Mesh(grassGeo, grassMat);
@@ -77,7 +116,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         grass.receiveShadow = true;
         scene.add(grass);
 
-        // Dirt mound patch under turbine base
+        // Dirt Patch
         const dirtGeo = new THREE.CylinderGeometry(4.5, 5.5, 0.15, 32);
         const dirtMat = new THREE.MeshStandardMaterial({{ color: 0x78350f, roughness: 0.95 }});
         const dirt = new THREE.Mesh(dirtGeo, dirtMat);
@@ -85,7 +124,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         dirt.receiveShadow = true;
         scene.add(dirt);
 
-        // Concrete Base Foundation
+        // Concrete Base
         const baseGeo = new THREE.CylinderGeometry(1.6, 2.0, 0.5, 32);
         const baseMat = new THREE.MeshStandardMaterial({{ color: 0x94a3b8, roughness: 0.7 }});
         const base = new THREE.Mesh(baseGeo, baseMat);
@@ -93,7 +132,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         base.castShadow = true;
         scene.add(base);
 
-        // Tower (Tapered Steel Cylinder)
+        // Tower
         const towerGeo = new THREE.CylinderGeometry(0.55, 1.0, 13, 32);
         const towerMat = new THREE.MeshStandardMaterial({{ color: 0xf8fafc, roughness: 0.25, metalness: 0.3 }});
         const tower = new THREE.Mesh(towerGeo, towerMat);
@@ -109,7 +148,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         nacelle.castShadow = true;
         scene.add(nacelle);
 
-        // Aerodynamic Rotor Hub Cone
+        // Hub & Blades
         const hubGeo = new THREE.ConeGeometry(0.85, 1.4, 32);
         hubGeo.rotateX(Math.PI / 2);
         const hubMat = new THREE.MeshStandardMaterial({{ color: 0xf8fafc, roughness: 0.2, metalness: 0.5 }});
@@ -121,7 +160,6 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
         const hub = new THREE.Mesh(hubGeo, hubMat);
         rotorGroup.add(hub);
 
-        // Aerodynamic Blades with Red Safety Tips
         const bladeMat = new THREE.MeshStandardMaterial({{ color: 0xffffff, roughness: 0.15 }});
         const tipMat = new THREE.MeshStandardMaterial({{ color: 0xdc2626 }});
 
@@ -135,7 +173,6 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
             blade.castShadow = true;
             bladeGroup.add(blade);
 
-            // Red tip on blade
             const tipGeo = new THREE.BoxGeometry(0.29, 0.8, 0.09);
             tipGeo.translate(0, 6.8, 0);
             const tip = new THREE.Mesh(tipGeo, tipMat);
@@ -144,11 +181,36 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
             rotorGroup.add(bladeGroup);
         }}
 
+        // 3D Callout Annotations Mapping
+        const annotations = [
+            {{ element: document.getElementById('anno-nacelle'), position: new THREE.Vector3(0, 14.5, 0.4) }},
+            {{ element: document.getElementById('anno-rotor'), position: new THREE.Vector3(0, 13.5, -2.0) }},
+            {{ element: document.getElementById('anno-tower'), position: new THREE.Vector3(1.2, 7.0, 0) }},
+            {{ element: document.getElementById('anno-base'), position: new THREE.Vector3(-2.0, 0.4, 0) }}
+        ];
+
+        function updateAnnotations() {{
+            const tempV = new THREE.Vector3();
+            annotations.forEach(anno => {{
+                if (!anno.element) return;
+                tempV.copy(anno.position);
+                tempV.project(camera);
+
+                const x = (tempV.x * .5 + .5) * window.innerWidth;
+                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+
+                anno.element.style.left = `${{x}}px`;
+                anno.element.style.top = `${{y}}px`;
+                anno.element.style.display = (tempV.z < 1) ? 'block' : 'none';
+            }});
+        }}
+
         // Animation Loop
         function animate() {{
             requestAnimationFrame(animate);
             rotorGroup.rotation.z += {speed_factor};
             controls.update();
+            updateAnnotations();
             renderer.render(scene, camera);
         }}
         animate();
@@ -157,6 +219,7 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            updateAnnotations();
         }});
     </script>
 </body>
@@ -165,10 +228,11 @@ def render_3d_wind_turbine(rpm: float = 15.0, gearbox_temp: float = 65.0, health
     components.html(html_code, height=height, scrolling=False)
 
 
-def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0, panel_temp: float = 45.0, health_status: str = "Healthy", height: int = 420):
-    """Render a realistic 3D Photovoltaic Solar Array with dynamic cell textures, aluminum borders, steel mounts, grass floor, and natural sky."""
+def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0, panel_temp: float = 45.0, health_status: str = "Healthy", height: int = 440):
+    """Render a realistic 3D Photovoltaic Solar Array with dynamic cell textures and 3D screen-projected component labels."""
     
     dust_opacity = max(0.0, min(0.65, (1.0 - soiling_factor) * 2.2))
+    badge_color = "#ef4444" if health_status == "Critical" else ("#f59e0b" if health_status == "Warning" else "#10b981")
 
     html_code = f"""<!DOCTYPE html>
 <html>
@@ -178,9 +242,22 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         body {{ margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; }}
         #info {{
             position: absolute; top: 12px; left: 12px; color: #0f172a; font-size: 12px;
-            background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px);
             padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 10;
+        }}
+        .annotation {{
+            position: absolute; pointer-events: none; transform: translate(-50%, -100%);
+            background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;
+            padding: 5px 9px; border-radius: 6px; font-size: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; z-index: 5;
+        }}
+        .annotation-title {{ font-weight: 700; color: #38bdf8; font-size: 11px; margin-bottom: 2px; }}
+        .annotation-dot {{
+            position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 7px; height: 7px; background: #38bdf8; border-radius: 50%;
+            box-shadow: 0 0 8px #38bdf8;
         }}
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -192,12 +269,31 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         Solar Irradiance: <b>{irradiance:.1f} W/m²</b><br>
         Module Temp: <b>{panel_temp:.1f} °C</b><br>
         Soiling Ratio: <b>{soiling_factor:.2f}</b> (1.0 = Clean)<br>
-        Health Status: <b>{health_status}</b><br>
+        Health Status: <b style="color:{badge_color};">{health_status}</b><br>
         <span style="color:#64748b; font-size:10px;">Drag to rotate | Scroll to zoom</span>
     </div>
+
+    <!-- Dynamic 3D Component Callout Overlay Badges -->
+    <div id="anno-modules" class="annotation">
+        <div class="annotation-title">SILICON PV MODULES ARRAY</div>
+        <div>Irradiance: <b>{irradiance:.1f} W/m²</b></div>
+        <div class="annotation-dot"></div>
+    </div>
+
+    <div id="anno-soiling" class="annotation">
+        <div class="annotation-title">SURFACE DUST SOILING LAYER</div>
+        <div>Soiling Ratio: <b>{soiling_factor:.2f}</b></div>
+        <div class="annotation-dot" style="background:#f59e0b; box-shadow:0 0 8px #f59e0b;"></div>
+    </div>
+
+    <div id="anno-mount" class="annotation">
+        <div class="annotation-title">GALVANIZED STEEL MOUNT</div>
+        <div>25° Optimal Tilt Rack</div>
+        <div class="annotation-dot"></div>
+    </div>
+
     <script>
         const scene = new THREE.Scene();
-        // Natural Cloudy Sky & Atmospheric Fog
         scene.background = new THREE.Color(0xdbeafe);
         scene.fog = new THREE.FogExp2(0xdbeafe, 0.012);
 
@@ -214,7 +310,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         controls.enableDamping = true;
         controls.maxPolarAngle = Math.PI / 2 - 0.02;
 
-        // Natural Sunlight & Skylight
+        // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
         scene.add(ambientLight);
 
@@ -225,7 +321,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         sunLight.shadow.mapSize.height = 1024;
         scene.add(sunLight);
 
-        // Ground Floor - Natural Grass with Dirt Bed underneath
+        // Ground Floor
         const grassGeo = new THREE.PlaneGeometry(50, 50);
         const grassMat = new THREE.MeshStandardMaterial({{ color: 0x4d7c0f, roughness: 0.95 }});
         const grass = new THREE.Mesh(grassGeo, grassMat);
@@ -233,7 +329,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         grass.receiveShadow = true;
         scene.add(grass);
 
-        // Dirt Ground Bed underneath Solar Rack
+        // Dirt Bed
         const dirtBedGeo = new THREE.BoxGeometry(14, 0.05, 8);
         const dirtBedMat = new THREE.MeshStandardMaterial({{ color: 0x78350f, roughness: 0.9 }});
         const dirtBed = new THREE.Mesh(dirtBedGeo, dirtBedMat);
@@ -241,18 +337,16 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
         dirtBed.receiveShadow = true;
         scene.add(dirtBed);
 
-        // Dynamic Canvas Texture Generator for Photorealistic Silicon Solar Cells
+        // Dynamic Canvas Texture Generator
         function createSolarTexture() {{
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
 
-            // Deep Blue Silicon Base
             ctx.fillStyle = '#0a192f';
             ctx.fillRect(0, 0, 512, 512);
 
-            // Cell divisions (6x10 grid per module)
             ctx.strokeStyle = '#1e3a8a';
             ctx.lineWidth = 3;
             const cellW = 512 / 6;
@@ -270,7 +364,6 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 ctx.stroke();
             }}
 
-            // Silver Busbars (Main electrical collector lines)
             ctx.strokeStyle = '#cbd5e1';
             ctx.lineWidth = 5;
             for (let b of [128, 256, 384]) {{
@@ -280,7 +373,6 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 ctx.stroke();
             }}
 
-            // Fine Grid Collector Fingers
             ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 1;
             for (let f = 0; f < 512; f += 12) {{
@@ -290,30 +382,26 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 ctx.stroke();
             }}
 
-            const texture = new THREE.CanvasTexture(canvas);
-            return texture;
+            return new THREE.CanvasTexture(canvas);
         }}
 
         const solarTexture = createSolarTexture();
 
-        // Main Solar Array Rack Group (Tilted at 25 degrees)
+        // Main Solar Array Rack Group
         const arrayGroup = new THREE.Group();
         arrayGroup.position.set(0, 2.0, 0);
-        arrayGroup.rotation.x = Math.PI / 7; // 25° Optimal Solar Tilt
+        arrayGroup.rotation.x = Math.PI / 7;
         scene.add(arrayGroup);
 
-        // Galvanized Steel Support Legs (Attached to Array Group)
+        // Support Legs
         const legMat = new THREE.MeshStandardMaterial({{ color: 0x64748b, metalness: 0.85, roughness: 0.3 }});
-        
         for (let x of [-4.5, 0, 4.5]) {{
-            // Front leg
             const legFront = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4, 16), legMat);
             legFront.position.set(x, -0.7, 1.2);
-            legFront.rotation.x = -Math.PI / 7; // Counter-tilt so legs go straight down into ground
+            legFront.rotation.x = -Math.PI / 7;
             legFront.castShadow = true;
             arrayGroup.add(legFront);
 
-            // Rear leg
             const legRear = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.8, 16), legMat);
             legRear.position.set(x, -1.4, -1.2);
             legRear.rotation.x = -Math.PI / 7;
@@ -321,7 +409,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             arrayGroup.add(legRear);
         }}
 
-        // Aluminum Rack Support Rails
+        // Support Rails
         const railMat = new THREE.MeshStandardMaterial({{ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 }});
         for (let z of [-1.5, 0, 1.5]) {{
             const rail = new THREE.Mesh(new THREE.BoxGeometry(11.8, 0.08, 0.1), railMat);
@@ -329,20 +417,13 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             arrayGroup.add(rail);
         }}
 
-        // REALISTIC SOLAR MODULES (4x2 Array)
+        // Solar Modules Array
         const panelWidth = 2.6;
         const panelHeight = 2.2;
         const rows = 2;
         const cols = 4;
 
-        // Photovoltaic Silicon Cell Surface Material
-        const pvCellMat = new THREE.MeshStandardMaterial({{
-            map: solarTexture,
-            roughness: 0.15,
-            metalness: 0.75
-        }});
-
-        // Silver Aluminum Frame Border Material
+        const pvCellMat = new THREE.MeshStandardMaterial({{ map: solarTexture, roughness: 0.15, metalness: 0.75 }});
         const frameMat = new THREE.MeshStandardMaterial({{ color: 0xe2e8f0, metalness: 0.95, roughness: 0.15 }});
 
         for (let r = 0; r < rows; r++) {{
@@ -353,23 +434,17 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
                 const singlePanelGroup = new THREE.Group();
                 singlePanelGroup.position.set(xPos, 0, zPos);
 
-                // Aluminum Outer Border Frame
                 const frameMesh = new THREE.Mesh(new THREE.BoxGeometry(panelWidth, 0.06, panelHeight), frameMat);
                 frameMesh.castShadow = true;
                 singlePanelGroup.add(frameMesh);
 
-                // Silicon PV Cell Surface Mesh
                 const pvSurface = new THREE.Mesh(new THREE.BoxGeometry(panelWidth - 0.08, 0.07, panelHeight - 0.08), pvCellMat);
                 pvSurface.position.y = 0.01;
                 singlePanelGroup.add(pvSurface);
 
-                // Soiling / Dust Layer (if dirty)
                 if ({dust_opacity} > 0.05) {{
                     const dustMat = new THREE.MeshStandardMaterial({{
-                        color: 0xd97706,
-                        transparent: true,
-                        opacity: {dust_opacity},
-                        roughness: 0.95
+                        color: 0xd97706, transparent: true, opacity: {dust_opacity}, roughness: 0.95
                     }});
                     const dustLayer = new THREE.Mesh(new THREE.PlaneGeometry(panelWidth - 0.08, panelHeight - 0.08), dustMat);
                     dustLayer.rotation.x = -Math.PI / 2;
@@ -381,10 +456,34 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             }}
         }}
 
-        // Static Real-world Orientation - User Controls Orbit Rotation
+        // 3D Callout Annotations Mapping
+        const annotations = [
+            {{ element: document.getElementById('anno-modules'), position: new THREE.Vector3(0, 2.5, 0) }},
+            {{ element: document.getElementById('anno-soiling'), position: new THREE.Vector3(-3.2, 2.2, 1.0) }},
+            {{ element: document.getElementById('anno-mount'), position: new THREE.Vector3(4.2, 1.0, -1.0) }}
+        ];
+
+        function updateAnnotations() {{
+            const tempV = new THREE.Vector3();
+            annotations.forEach(anno => {{
+                if (!anno.element) return;
+                tempV.copy(anno.position);
+                tempV.project(camera);
+
+                const x = (tempV.x * .5 + .5) * window.innerWidth;
+                const y = (tempV.y * -.5 + .5) * window.innerHeight;
+
+                anno.element.style.left = `${{x}}px`;
+                anno.element.style.top = `${{y}}px`;
+                anno.element.style.display = (tempV.z < 1) ? 'block' : 'none';
+            }});
+        }}
+
+        // Animation Loop
         function animate() {{
             requestAnimationFrame(animate);
             controls.update();
+            updateAnnotations();
             renderer.render(scene, camera);
         }}
         animate();
@@ -393,6 +492,7 @@ def render_3d_solar_panel(soiling_factor: float = 1.0, irradiance: float = 850.0
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            updateAnnotations();
         }});
     </script>
 </body>
