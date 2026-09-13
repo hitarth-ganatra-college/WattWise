@@ -37,9 +37,11 @@ class BaseAsset:
             'status': 'pending'
         })
         
+        has_new_commands = False
         for cmd in pending_commands:
             action = cmd.get('action')
             parameters = cmd.get('parameters', {})
+            has_new_commands = True
             
             if action == 'override':
                 self.manual_overrides.update(parameters)
@@ -55,6 +57,15 @@ class BaseAsset:
                 {'$set': {
                     'status': 'executed',
                     'executed_at': datetime.now(timezone.utc)
+                }}
+            )
+
+        if has_new_commands:
+            db[config.COLLECTION_ASSETS].update_one(
+                {'asset_id': self.asset_id},
+                {'$set': {
+                    'manual_overrides': self.manual_overrides,
+                    'updated_at': datetime.now(timezone.utc)
                 }}
             )
 

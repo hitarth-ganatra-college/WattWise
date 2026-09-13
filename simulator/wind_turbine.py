@@ -86,6 +86,7 @@ class WindTurbine(BaseAsset):
         return data
 
     def tick(self) -> bool:
+        self.check_for_commands()
         if self._data_iterator is None:
             self._init_data_stream()
             
@@ -97,7 +98,6 @@ class WindTurbine(BaseAsset):
         row = chunk.iloc[0]
         data = self._map_row_to_telemetry(row)
         
-        self.check_for_commands()
         data = self.apply_overrides(data)
         self.emit_telemetry(data)
         super().tick()

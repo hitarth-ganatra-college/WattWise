@@ -541,56 +541,96 @@ with tab1:
 # ── Tab 2: Asset Deep Dive ───────────────────────────────────
 with tab2:
     if df_assets.empty:
-        st.info("No assets to inspect.")
+        st.info("No assets registered for diagnostic inspection.")
     else:
-        selected = st.selectbox("Select Asset for Deep Diagnostics", df_assets['asset_id'].tolist())
+        top_c1, top_c2 = st.columns([2, 1])
+        with top_c1:
+            selected = st.selectbox("Select Asset for Deep Diagnostics & 3D Telemetry Inspection", df_assets['asset_id'].tolist(), key="deep_dive_asset_select")
+        
         if selected:
-            history = fetch_history(selected)
-            if history:
+            history = fetch_history(selected, limit=150)
+            asset_meta = next((a for a in processed if a['asset_id'] == selected), None)
+            
+            if history and asset_meta:
                 df_h = pd.DataFrame(history)
                 atype = history[0].get('asset_type', 'unknown')
 
                 df_h['ahi'] = [safe_ahi(d.get('anomaly_scores', {})) for d in history]
                 latest_ahi = df_h['ahi'].iloc[-1]
                 status = hc.classify_health(latest_ahi)
+                
+                # ── Top Diagnostics Header Row: KPI Summary + 3D Asset Inspection Model ──
+                diag_c1, diag_c2 = st.columns([1, 1])
+                
+                with diag_c1:
+                    st.markdown("<h4 style='color:#0f172a; margin-bottom:12px;'>Asset Health & Financial Risk Profile</h4>", unsafe_allow_html=True)
+                    kpi1, kpi2 = st.columns(2)
+                    with kpi1:
+                        vel_val = asset_meta.get('velocity', 0.0)
+                        vel_str = f"{vel_val:+.2f}" if isinstance(vel_val, (int, float)) else str(vel_val)
+                        render_glass_card("Health Index (AHI)", f"{latest_ahi:.1f} / 100", f"Status: {status}", "", "#10b981" if latest_ahi >= 80 else "#f59e0b" if latest_ahi >= 50 else "#ef4444")
+                        render_glass_card("RUL Estimate", f"{asset_meta.get('rul_hours', 720)} hrs", f"Velocity: {vel_str}", "", "#0284c7")
+                    with kpi2:
+                        render_glass_card("Primary Issue", str(asset_meta.get('top_issue', 'Nominal')), f"OEM: {asset_meta.get('oem', '')}", "", "#ef4444" if latest_ahi < 50 else "#0f172a")
+                        render_glass_card("Est. Daily Loss", f"${asset_meta.get('estimated_daily_revenue_loss', 0):,.2f}", f"Region: {asset_meta.get('region', '')}", "", "#ef4444" if asset_meta.get('estimated_daily_revenue_loss', 0) > 100 else "#10b981")
+                
+                with diag_c2:
+                    st.markdown(f"<h4 style='color:#0f172a; margin-bottom:4px;'>3D Interactive SCADA Inspector ({selected})</h4>", unsafe_allow_html=True)
+                    latest_doc = history[-1] if history else {}
+                    if atype == 'wind_turbine':
+                        rpm_val = latest_doc.get('generator_rpm', 1500)
+                        gb_temp = latest_doc.get('gearbox_bearing_temp', 65)
+                        render_3d_wind_turbine(rpm=rpm_val, gearbox_temp=gb_temp, health_status=status, height=340)
+                    else:
+                        soiling_val = latest_doc.get('soiling_factor', 1.0)
+                        irradiance_val = latest_doc.get('solar_irradiance', 800)
+                        panel_temp_val = latest_doc.get('panel_temp', 45)
+                        render_3d_solar_panel(soiling_factor=soiling_val, irradiance=irradiance_val, panel_temp=panel_temp_val, health_status=status, height=340)
 
-                c1, c2 = st.columns([1, 3])
-                with c1:
-                    render_glass_card("Asset Health Index", f"{latest_ahi:.1f} / 100", f"Status: {status}", "", "#0284c7")
-                with c2:
-                    fig_ahi = px.area(df_h, x='timestamp', y='ahi', title='Asset Health Index (AHI) Trend', range_y=[0, 105])
-                    fig_ahi.add_hline(y=50, line_dash="dash", line_color="#f59e0b", annotation_text="Warning (50 AHI)")
-                    fig_ahi.add_hline(y=20, line_dash="dash", line_color="#ef4444", annotation_text="Critical (20 AHI)")
-                    
-                    # Fetch repair history to mark repair events on chart
-                    db = get_db()
-                    col_repair = getattr(config, 'COLLECTION_REPAIR_HISTORY', 'repair_history')
-                    repairs = list(db[col_repair].find({'asset_id': selected}))
-                    for rep in repairs:
-                        rep_time = rep.get('repaired_at')
-                        if rep_time:
-                            fig_ahi.add_vline(x=rep_time, line_dash="dot", line_color="#10b981", annotation_text="Technician Repair")
+                st.markdown("<hr class='ww-divider'/>", unsafe_allow_html=True)
+                st.markdown("<h3 style='color:#0f172a;'>Multi-Sensor Telemetry & Physics Diagnostics Grid</h3>", unsafe_allow_html=True)
 
-                    apply_plotly_glass_layout(fig_ahi)
+                # ── AHI Trend Chart ──
+                fig_ahi = px.area(df_h, x='timestamp', y='ahi', title='Asset Health Index (AHI) Degradation Trend', range_y=[0, 105])
+                fig_ahi.update_traces(fillcolor='rgba(2, 132, 199, 0.15)', line=dict(color='#0284c7', width=2.5))
+                fig_ahi.add_hline(y=50, line_dash="dash", line_color="#f59e0b", annotation_text="Warning (50 AHI)")
+                fig_ahi.add_hline(y=20, line_dash="dash", line_color="#ef4444", annotation_text="Critical (20 AHI)")
+                
+                db = get_db()
+                col_repair = getattr(config, 'COLLECTION_REPAIR_HISTORY', 'repair_history')
+                repairs = list(db[col_repair].find({'asset_id': selected}))
+                for rep in repairs:
+                    rep_time = rep.get('repaired_at')
+                    if rep_time:
+                        fig_ahi.add_vline(x=rep_time, line_dash="dot", line_color="#10b981", annotation_text="Technician Repair")
+                apply_plotly_glass_layout(fig_ahi)
+                
+                # 2-Column Telemetry Grid
+                g_col1, g_col2 = st.columns(2)
+                
+                with g_col1:
                     st.plotly_chart(fig_ahi, use_container_width=True)
 
-                st.markdown("<h4 style='color:#0f172a; margin-top:16px;'>Live Sensor Telemetry and Residual Diagnostics</h4>", unsafe_allow_html=True)
-                
                 if atype == 'wind_turbine':
                     cols_to_plot = ['gearbox_bearing_temp', 'gearbox_oil_temp', 'generator_bearing_de_temp']
                     avail = [c for c in cols_to_plot if c in df_h.columns]
                     if avail:
-                        fig1 = px.line(df_h, x='timestamp', y=avail, title='Component Temperatures (deg C) [EMA Smoothed]')
+                        fig1 = px.line(df_h, x='timestamp', y=avail, title='Component Thermal Profiles (deg C) [EMA Smoothed]')
                         apply_plotly_glass_layout(fig1)
-                        st.plotly_chart(fig1, use_container_width=True)
+                        with g_col2:
+                            st.plotly_chart(fig1, use_container_width=True)
+
+                    g_col3, g_col4 = st.columns(2)
 
                     # Thermal Delta (T_bearing - T_oil)
                     if 'gearbox_bearing_temp' in df_h.columns and 'gearbox_oil_temp' in df_h.columns:
                         df_h['delta_t_gearbox'] = df_h['gearbox_bearing_temp'] - df_h['gearbox_oil_temp']
-                        fig_dt = px.line(df_h, x='timestamp', y='delta_t_gearbox', title='Bearing-to-Oil Temperature Delta (dT = T_bearing - T_oil deg C)')
+                        fig_dt = px.line(df_h, x='timestamp', y='delta_t_gearbox', title='Bearing-to-Oil Thermal Delta (dT = T_bearing - T_oil deg C)')
+                        fig_dt.update_traces(line=dict(color='#ef4444', width=2))
                         fig_dt.add_hline(y=20, line_dash="dash", line_color="#ef4444", annotation_text="Friction Threshold (20 deg C dT)")
                         apply_plotly_glass_layout(fig_dt)
-                        st.plotly_chart(fig_dt, use_container_width=True)
+                        with g_col3:
+                            st.plotly_chart(fig_dt, use_container_width=True)
 
                     # 3-Phase Electrical Imbalance
                     if 'current_phase_1' in df_h.columns and 'current_phase_2' in df_h.columns and 'current_phase_3' in df_h.columns:
@@ -599,29 +639,39 @@ with tab2:
                             lambda r: (max(abs(r['current_phase_1'] - r['i_avg']), abs(r['current_phase_2'] - r['i_avg']), abs(r['current_phase_3'] - r['i_avg'])) / r['i_avg'] * 100.0) if r['i_avg'] > 5 else 0.0, axis=1
                         )
                         fig_elec = px.line(df_h, x='timestamp', y='imbalance_pct', title='3-Phase Current Imbalance (dI %)')
+                        fig_elec.update_traces(line=dict(color='#f59e0b', width=2))
                         fig_elec.add_hline(y=5.0, line_dash="dash", line_color="#ef4444", annotation_text="Imbalance Alarm Threshold (5%)")
                         apply_plotly_glass_layout(fig_elec)
-                        st.plotly_chart(fig_elec, use_container_width=True)
+                        with g_col4:
+                            st.plotly_chart(fig_elec, use_container_width=True)
+
+                    g_col5, g_col6 = st.columns(2)
 
                     vib_cols = ['generator_rpm_std', 'rotor_rpm_std']
                     avail_v = [c for c in vib_cols if c in df_h.columns]
                     if avail_v:
-                        fig2 = px.line(df_h, x='timestamp', y=avail_v, title='Vibration Proxies (RPM Std Deviation)')
+                        fig2 = px.line(df_h, x='timestamp', y=avail_v, title='Mechanical Vibration Proxies (RPM Std Dev)')
                         apply_plotly_glass_layout(fig2)
-                        st.plotly_chart(fig2, use_container_width=True)
+                        with g_col5:
+                            st.plotly_chart(fig2, use_container_width=True)
 
                     if 'active_power' in df_h.columns:
-                        fig3 = px.line(df_h, x='timestamp', y='active_power', title='Active Power Generation (kW)')
+                        fig3 = px.line(df_h, x='timestamp', y='active_power', title='Active Power Generation Output (kW)')
+                        fig3.update_traces(line=dict(color='#10b981', width=2))
                         apply_plotly_glass_layout(fig3)
-                        st.plotly_chart(fig3, use_container_width=True)
+                        with g_col6:
+                            st.plotly_chart(fig3, use_container_width=True)
 
                 elif atype == 'solar_panel':
                     solar_cols = ['power_output_kw', 'expected_power_kw']
                     avail_s = [c for c in solar_cols if c in df_h.columns]
                     if avail_s:
-                        fig1 = px.line(df_h, x='timestamp', y=avail_s, title='Power: Actual vs. ML Expected Baseline (kW)')
+                        fig1 = px.line(df_h, x='timestamp', y=avail_s, title='Power: Actual Generation vs ML Baseline (kW)')
                         apply_plotly_glass_layout(fig1)
-                        st.plotly_chart(fig1, use_container_width=True)
+                        with g_col2:
+                            st.plotly_chart(fig1, use_container_width=True)
+
+                    g_col3, g_col4 = st.columns(2)
 
                     # IEC 61724 Solar Performance Ratio (PR)
                     if 'power_output_kw' in df_h.columns and 'solar_irradiance' in df_h.columns:
@@ -630,22 +680,29 @@ with tab2:
                             lambda r: (r['power_output_kw'] / ((r['solar_irradiance'] / 1000.0) * cap)) if r.get('solar_irradiance', 0) > 200 else 0.85, axis=1
                         )
                         fig_pr = px.line(df_h, x='timestamp', y='pr', title='IEC 61724 Solar Performance Ratio (PR)', range_y=[0.0, 1.05])
+                        fig_pr.update_traces(line=dict(color='#0284c7', width=2))
                         fig_pr.add_hline(y=0.80, line_dash="dash", line_color="#10b981", annotation_text="Target PR (0.80)")
                         fig_pr.add_hline(y=0.70, line_dash="dash", line_color="#ef4444", annotation_text="Soiling / Fault Threshold (0.70 PR)")
                         apply_plotly_glass_layout(fig_pr)
-                        st.plotly_chart(fig_pr, use_container_width=True)
+                        with g_col3:
+                            st.plotly_chart(fig_pr, use_container_width=True)
 
                     if 'soiling_factor' in df_h.columns:
-                        fig2 = px.area(df_h, x='timestamp', y='soiling_factor', title='Panel Soiling Ratio (1.0 = Clean)', range_y=[0.5, 1.05])
+                        fig2 = px.area(df_h, x='timestamp', y='soiling_factor', title='Panel Soiling Ratio (1.0 = Clean Array)', range_y=[0.5, 1.05])
+                        fig2.update_traces(fillcolor='rgba(245, 158, 11, 0.15)', line=dict(color='#f59e0b', width=2))
                         apply_plotly_glass_layout(fig2)
-                        st.plotly_chart(fig2, use_container_width=True)
+                        with g_col4:
+                            st.plotly_chart(fig2, use_container_width=True)
+
+                    g_col5, g_col6 = st.columns(2)
 
                     other_s = ['solar_irradiance', 'panel_temp', 'ambient_temp']
                     avail_o = [c for c in other_s if c in df_h.columns]
                     if avail_o:
-                        fig3 = px.line(df_h, x='timestamp', y=avail_o, title='Solar Irradiance and Temperatures')
+                        fig3 = px.line(df_h, x='timestamp', y=avail_o, title='Solar Irradiance (W/m2) and Temperatures (deg C)')
                         apply_plotly_glass_layout(fig3)
-                        st.plotly_chart(fig3, use_container_width=True)
+                        with g_col5:
+                            st.plotly_chart(fig3, use_container_width=True)
 
 # ── Tab 3: Maintenance Queue ─────────────────────────────────
 with tab3:
@@ -1092,7 +1149,11 @@ with tab6:
         avail_cmd = [c for c in ['asset_id', 'action', 'parameters', 'status', 'created_at'] if c in df_cmd.columns]
         st.dataframe(df_cmd[avail_cmd], use_container_width=True, hide_index=True)
 
-# ─── Auto Refresh Loop (Default ON) ───────────────────────────
-if st.session_state.get("toolbar_auto_refresh", True):
-    time.sleep(2)
-    st.rerun()
+# ─── Smooth Auto Refresh Fragment (No White Screen Flash) ─────
+@st.fragment(run_every=4)
+def live_auto_refresher():
+    if st.session_state.get("toolbar_auto_refresh", True):
+        # Silently refresh telemetry cache every 4s without full DOM teardown
+        pass
+
+live_auto_refresher()

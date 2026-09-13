@@ -1,5 +1,5 @@
-"""
-WattWise Design System — Modern Enterprise UI
+﻿"""
+WattWise Design System ΓÇö Modern Enterprise UI
 ================================================
 Inspired by Fin (Intercom), Lovable, Mintlify navbars.
 Clean single-row navbar, subtle section containers, refined typography.
@@ -19,17 +19,39 @@ html, body, [class*="css"] {
     color: #0f172a !important;
 }
 
-/* --- Force Light App Background --- */
-.stApp {
+/* --- Force Solid Background & Prevent Option-Change Whitening / Dimming --- */
+html, body, .stApp, section[data-testid="stMain"],
+div[data-testid="stAppViewContainer"], div[data-testid="stMainBlockContainer"] {
     background-color: #fafafa !important;
+    background: #fafafa !important;
 }
 
-/* --- Kill Streamlit default chrome UI, toolbars, menus, and status badges --- */
+.stApp,
+.stApp *,
+[data-test-script-state="running"],
+[data-test-script-state="running"] *,
+[data-st-mode="running"],
+[data-st-mode="running"] *,
+div[data-testid="stAppViewContainer"],
+div[data-testid="stAppViewContainer"] *,
+section[data-testid="stMain"],
+section[data-testid="stMain"] *,
+div[data-testid="stMainBlockContainer"],
+div[data-testid="stMainBlockContainer"] * {
+    opacity: 1 !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    transition: none !important;
+}
+
+/* --- Kill Streamlit default chrome UI, toolbars, menus, status badges, and rerun overlays --- */
 #MainMenu, footer, header, 
 [data-testid="stHeader"], 
 [data-testid="stToolbar"], 
 [data-testid="stDecoration"], 
 [data-testid="stStatusWidget"],
+div[class*="stStatusWidget"],
+div[data-test-script-state="running"],
 [data-testid="stSidebarNav"],
 .viewerBadge_container__1S-5D,
 button[title="View fullscreen"],
@@ -43,17 +65,31 @@ div[class*="stActionButton"] {
     pointer-events: none !important;
 }
 
-/* Remove transforms from Streamlit ancestors so position:fixed works */
+/* --- Eliminate iframe component background flashes --- */
+iframe,
+[data-testid="stCustomComponentV1"],
+.element-container iframe {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* Remove transforms/containment from Streamlit ancestors so position:fixed works */
 .stApp, .main, .main > div, section[data-testid="stMain"],
-section[data-testid="stMainBlockContainer"], .block-container {
+section[data-testid="stMainBlockContainer"], .block-container,
+[data-testid="stAppViewContainer"], [data-testid="stVerticalBlock"],
+[data-testid="stElementContainer"], [data-testid="stTabs"], .stTabs {
     transform: none !important;
     will-change: auto !important;
     contain: none !important;
+    isolation: auto !important;
+    perspective: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
 }
 
 /* --- Main content area --- */
 .main .block-container {
-    padding-top: 60px !important;
+    padding-top: 52px !important;
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
@@ -66,7 +102,7 @@ section[data-testid="stSidebar"] {
 }
 
 /* ================================================================
-   NAVBAR — Truly fixed to viewport top
+   NAVBAR ΓÇö Truly fixed to viewport top
    ================================================================ */
 .ww-topbar {
     display: flex;
@@ -148,75 +184,99 @@ section[data-testid="stSidebar"] {
 }
 
 /* ================================================================
-   NAVIGATION TABS — Styled as clean horizontal text links
+   NAVIGATION TABS ΓÇö Positioned directly in the Top Navigation Bar beside Logo
    ================================================================ */
 .stTabs {
     margin-top: 0 !important;
 }
 
-.stTabs [data-baseweb="tab-list"] {
-    background-color: #ffffff !important;
+[data-testid="stTabList"],
+[role="tablist"],
+.stTabs [data-baseweb="tab-list"],
+.stTabs > div:first-child {
+    position: fixed !important;
+    top: 0 !important;
+    left: 175px !important;
+    height: 48px !important;
+    z-index: 9999999 !important;
+    background-color: transparent !important;
     border: none !important;
-    border-bottom: 1px solid #e5e7eb !important;
+    border-bottom: none !important;
     border-radius: 0 !important;
-    padding: 0 12px !important;
-    gap: 0 !important;
-    margin: 0 -2rem !important;
-    padding-left: 28px !important;
-    padding-right: 28px !important;
+    padding: 0 !important;
+    gap: 2px !important;
+    margin: 0 !important;
     box-shadow: none !important;
     width: auto !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: flex-start !important;
 }
 
-/* Remove the default Streamlit tab highlight bar */
-.stTabs [data-baseweb="tab-highlight"] {
-    background-color: #0f172a !important;
-    height: 2px !important;
-}
-
+/* Remove default tab highlight lines and borders */
+[data-testid="stTabList"] + div,
+.stTabs [data-baseweb="tab-highlight"],
 .stTabs [data-baseweb="tab-border"] {
     display: none !important;
 }
 
-button[data-baseweb="tab"] {
+[data-testid="stTab"],
+button[role="tab"],
+.stTabs [data-baseweb="tab"],
+.stTabs button {
     background-color: transparent !important;
     border: none !important;
     border-radius: 0 !important;
-    padding: 12px 18px !important;
+    padding: 0 14px !important;
+    height: 48px !important;
     margin: 0 !important;
-    transition: color 0.15s ease !important;
+    transition: all 0.15s ease !important;
     border-bottom: 2px solid transparent !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
-button[data-baseweb="tab"]:hover {
+[data-testid="stTab"]:hover,
+button[role="tab"]:hover,
+.stTabs [data-baseweb="tab"]:hover,
+.stTabs button:hover {
     background-color: transparent !important;
-    border-bottom: 2px solid #d1d5db !important;
+    border-bottom: 2px solid #0284c7 !important;
 }
 
-button[data-baseweb="tab"] p,
-button[data-baseweb="tab"] span {
-    color: #6b7280 !important;
+[data-testid="stTab"] p,
+[data-testid="stTab"] span,
+button[role="tab"] p,
+button[role="tab"] span,
+.stTabs button p,
+.stTabs button span {
+    color: #64748b !important;
     font-weight: 500 !important;
     font-size: 0.85rem !important;
     letter-spacing: -0.01em !important;
 }
 
-button[aria-selected="true"] {
+[data-testid="stTab"][aria-selected="true"],
+button[role="tab"][aria-selected="true"],
+.stTabs button[aria-selected="true"] {
     background-color: transparent !important;
     border: none !important;
-    border-bottom: 2px solid #0f172a !important;
+    border-bottom: 2px solid #0284c7 !important;
     box-shadow: none !important;
 }
 
-button[aria-selected="true"] p,
-button[aria-selected="true"] span {
-    color: #0f172a !important;
-    font-weight: 600 !important;
+[data-testid="stTab"][aria-selected="true"] p,
+[data-testid="stTab"][aria-selected="true"] span,
+button[role="tab"][aria-selected="true"] p,
+button[role="tab"][aria-selected="true"] span,
+.stTabs button[aria-selected="true"] p,
+.stTabs button[aria-selected="true"] span {
+    color: #0284c7 !important;
+    font-weight: 700 !important;
 }
 
 /* ================================================================
-   FILTER BAR — Compact inline row
+   FILTER BAR ΓÇö Compact inline row
    ================================================================ */
 .ww-filter-bar {
     display: flex;
@@ -265,7 +325,7 @@ div[data-baseweb="select"] * {
 }
 
 /* ================================================================
-   SECTION CONTAINERS — Subtle bordered cards
+   SECTION CONTAINERS ΓÇö Subtle bordered cards
    ================================================================ */
 .ww-section {
     background: #ffffff;
@@ -290,7 +350,7 @@ div[data-baseweb="select"] * {
 }
 
 /* ================================================================
-   METRIC CARDS — Clean, minimal
+   METRIC CARDS ΓÇö Clean, minimal
    ================================================================ */
 .glass-metric {
     background: #ffffff;
@@ -365,7 +425,7 @@ div[data-baseweb="select"] * {
 }
 
 /* ================================================================
-   STREAMLIT OVERRIDES — Tables, expanders, etc.
+   STREAMLIT OVERRIDES ΓÇö Tables, expanders, etc.
    ================================================================ */
 .stDataFrame, .stTable {
     border: 1px solid #e5e7eb !important;
@@ -413,7 +473,7 @@ def inject_glass_theme():
     st.markdown(GLASS_CSS, unsafe_allow_html=True)
 
 def render_topbar() -> str:
-    """Render the full top navigation bar HTML — logo left, status right."""
+    """Render the full top navigation bar HTML ΓÇö logo left, status right."""
     return (
         '<div class="ww-topbar">'
         # Left: Logo
@@ -433,7 +493,7 @@ def render_topbar() -> str:
     )
 
 def render_wattwise_logo(height: int = 42, width: int = 240) -> str:
-    """Legacy compatibility — returns inline logo HTML."""
+    """Legacy compatibility ΓÇö returns inline logo HTML."""
     return (
         '<div style="display:flex;align-items:center;gap:10px;">'
         '<div style="width:32px;height:32px;background:linear-gradient(135deg,#0284c7,#10b981);border-radius:8px;display:flex;align-items:center;justify-content:center;">'

@@ -82,6 +82,23 @@ class SolarPanel(BaseAsset):
             self.soiling_factor = max(0.85, self.soiling_factor - self.soiling_rate)
 
     def tick(self) -> bool:
+        self.check_for_commands()
+        
+        if 'inject_diode_fault' in self.manual_overrides:
+            self.has_diode_fault = True
+            self.diode_fault_loss = self.manual_overrides.get('diode_fault_loss', 0.33)
+
+        if 'soiling_factor' in self.manual_overrides:
+            self.soiling_factor = self.manual_overrides['soiling_factor']
+            
+        if 'clean_panels' in self.manual_overrides or 'repair_all' in self.manual_overrides:
+            self.soiling_factor = 1.0
+            self.has_diode_fault = False
+            self.diode_fault_loss = 0.0
+            self.manual_overrides.pop('clean_panels', None)
+            self.manual_overrides.pop('repair_all', None)
+            self.manual_overrides.pop('inject_diode_fault', None)
+
         self.sim_time += timedelta(minutes=10)
         self._update_weather()
         self._update_soiling()
@@ -117,17 +134,6 @@ class SolarPanel(BaseAsset):
             'cloud_cover': self.cloud_cover
         }
         
-        self.check_for_commands()
-        
-        if 'inject_diode_fault' in self.manual_overrides:
-            self.has_diode_fault = True
-            self.diode_fault_loss = self.manual_overrides.get('diode_fault_loss', 0.33)
-            
-        if 'clean_panels' in self.manual_overrides:
-            self.soiling_factor = 1.0
-            if 'clean_panels' in self.manual_overrides:
-                del self.manual_overrides['clean_panels']
-                
         sensor_data = self.apply_overrides(sensor_data)
         self.emit_telemetry(sensor_data)
         super().tick()

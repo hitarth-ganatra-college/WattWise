@@ -56,11 +56,11 @@ class AssetHealthCalculator:
         if ahi >= 80:
             return 'Healthy'
         elif ahi >= 50:
-            return 'Warning'
+            return 'At Risk'
         elif ahi >= 20:
-            return 'Critical'
+            return 'Degraded'
         else:
-            return 'Failure Imminent'
+            return 'Critical'
 
     def get_color(self, ahi: float) -> str:
         if ahi >= 80:
